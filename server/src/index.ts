@@ -8,6 +8,8 @@ import pino from 'pino';
 import { prisma } from './db.js';
 import { seedAdminUser } from './services/auth.js';
 import authRoutes from './routes/auth.js';
+import computerRoutes from './routes/computers.js';
+import agentRoutes from './routes/agent.js';
 
 export const logger = pino({ transport: { target: 'pino-pretty' } });
 
@@ -21,6 +23,8 @@ app.get('/api/health', (_req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/computers', computerRoutes);
+app.use('/api/agent', agentRoutes);
 
 const server = createServer(app);
 
