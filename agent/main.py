@@ -46,9 +46,35 @@ def enroll(token: str, server_url: str) -> None:
     print(f"Enrolled successfully! Computer ID: {data['computerId']}")
 
 async def handle_command(command: str, params: dict) -> dict:
-    """Dispatch to the appropriate command handler. Implemented in Task 14+."""
-    # Placeholder — will import from commands/ modules later
-    return {"error": f"Command '{command}' not yet implemented"}
+    """Dispatch to the appropriate command handler."""
+    from commands.execute import execute_command
+    from commands.screenshot import screenshot
+    from commands.system_info import system_info
+    from commands.processes import list_processes
+    from commands.event_logs import get_event_logs
+    from commands.services import manage_service
+    from commands.software import get_installed_software
+    from commands.files import read_file, write_file
+    from commands.network import network_diagnostics
+
+    handlers = {
+        "execute_command": execute_command,
+        "screenshot": screenshot,
+        "system_info": system_info,
+        "list_processes": list_processes,
+        "get_event_logs": get_event_logs,
+        "manage_service": manage_service,
+        "get_installed_software": get_installed_software,
+        "read_file": read_file,
+        "write_file": write_file,
+        "network_diagnostics": network_diagnostics,
+    }
+
+    handler = handlers.get(command)
+    if not handler:
+        return {"error": f"Unknown command: {command}"}
+
+    return await handler(params)
 
 def main():
     parser = argparse.ArgumentParser(description="MagicWand Agent")
