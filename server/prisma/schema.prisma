@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id            String     @id @default(uuid())
+  email         String     @unique
+  passwordHash  String
+  name          String
+  createdAt     DateTime   @default(now())
+  computers     Computer[]
+  sessions      Session[]
+}
+
+model Computer {
+  id            String        @id @default(uuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String
+  hostname      String
+  os            String
+  cpuModel      String?
+  ramTotalMb    Int?
+  agentSecret   String        @unique
+  enrollToken   String?       @unique
+  enrollExpiry  DateTime?
+  isOnline      Boolean       @default(false)
+  lastSeen      DateTime?
+  ipAddress     String?
+  agentVersion  String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  chatMessages  ChatMessage[]
+}
+
+model ChatMessage {
+  id            String   @id @default(uuid())
+  computerId    String
+  computer      Computer @relation(fields: [computerId], references: [id], onDelete: Cascade)
+  role          String
+  content       String
+  metadata      String?
+  createdAt     DateTime @default(now())
+}
+
+model Session {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token         String   @unique
+  expiresAt     DateTime
+  createdAt     DateTime @default(now())
+}
