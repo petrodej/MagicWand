@@ -3,13 +3,15 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { createServer } from 'http';
 import { WebSocketServer } from 'ws';
+import { URL } from 'url';
 import { config } from './config.js';
 import pino from 'pino';
-import { prisma } from './db.js';
 import { seedAdminUser } from './services/auth.js';
 import authRoutes from './routes/auth.js';
+import { validateWsToken } from './routes/auth.js';
 import computerRoutes from './routes/computers.js';
 import agentRoutes from './routes/agent.js';
+import { setupAgentWebSocket, addDashboardClient } from './ws/agentHandler.js';
 
 export const logger = pino({ transport: { target: 'pino-pretty' } });
 
@@ -28,11 +30,38 @@ app.use('/api/agent', agentRoutes);
 
 const server = createServer(app);
 
-// WebSocket servers will be attached in later tasks
-const wss = new WebSocketServer({ noServer: true });
+const agentWss = new WebSocketServer({ noServer: true });
+const dashboardWss = new WebSocketServer({ noServer: true });
 
-server.on('upgrade', (request, socket, head) => {
-  // Route WebSocket upgrades — implemented in later tasks
+setupAgentWebSocket(agentWss);
+
+dashboardWss.on('connection', (ws) => {
+  addDashboardClient(ws);
+});
+
+server.on('upgrade', async (request, socket, head) => {
+  const url = new URL(request.url || '', `http://${request.headers.host}`);
+  const pathname = url.pathname;
+
+  if (pathname === '/ws/agent') {
+    agentWss.handleUpgrade(request, socket, head, (ws) => {
+      agentWss.emit('connection', ws, request);
+    });
+    return;
+  }
+
+  if (pathname === '/ws/dashboard') {
+    const token = url.searchParams.get('token');
+    if (!token || !validateWsToken(token)) {
+      socket.destroy();
+      return;
+    }
+    dashboardWss.handleUpgrade(request, socket, head, (ws) => {
+      dashboardWss.emit('connection', ws, request);
+    });
+    return;
+  }
+
   socket.destroy();
 });
 
@@ -44,4 +73,4 @@ async function start() {
 }
 start();
 
-export { app, server, wss };
+export { app, server };
