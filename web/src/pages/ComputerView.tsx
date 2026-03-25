@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { api } from '../lib/api';
 import type { Computer } from '../stores/computerStore';
 import { SystemInfoPanel } from '../components/SystemInfoPanel';
-import { StatusIndicator } from '../components/StatusIndicator';
 import { AIChat } from '../components/AIChat';
 
 export function ComputerView() {
@@ -14,7 +12,7 @@ export function ComputerView() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [computer, setComputer] = useState<Computer | null>(null);
-  const defaultTab = searchParams.get('tab') || 'overview';
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview');
 
   useEffect(() => {
     if (id) {
@@ -22,41 +20,62 @@ export function ComputerView() {
     }
   }, [id, navigate]);
 
-  if (!computer) return <div className="bg-gray-950 min-h-screen text-white p-8">Loading...</div>;
+  const handleDelete = async () => {
+    if (!computer || !confirm('Delete this computer?')) return;
+    await api.del(`/api/computers/${computer.id}`);
+    navigate('/dashboard');
+  };
+
+  if (!computer) return <div className="p-8">Loading...</div>;
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
-      <header className="flex items-center gap-4 px-6 py-4 border-b border-gray-800">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard')}>
-          <ArrowLeft className="w-4 h-4" />
-        </Button>
-        <div>
-          <h1 className="text-lg font-semibold">{computer.name}</h1>
-          <p className="text-xs text-gray-500 font-mono">{computer.hostname}</p>
+    <div className="p-8">
+      {/* Breadcrumb header */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-2 text-sm">
+          <button onClick={() => navigate('/dashboard')} className="text-gray-500 hover:text-gray-300 transition-colors">
+            Computers
+          </button>
+          <span className="text-gray-700">/</span>
+          <span className="text-gray-100 font-medium">{computer.name}</span>
+          <span className={`w-2 h-2 rounded-full ml-1 ${
+            computer.isOnline ? 'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.4)]' : 'bg-gray-600'
+          }`} />
         </div>
-        <StatusIndicator online={computer.isOnline} />
-      </header>
+        <Button variant="ghost" size="sm" onClick={handleDelete} className="text-gray-600 hover:text-red-400">
+          <Trash2 className="w-4 h-4" />
+        </Button>
+      </div>
 
-      <Tabs defaultValue={defaultTab} className="px-6 pt-4">
-        <TabsList className="bg-gray-900 border border-gray-800">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="chat">AI Assistant</TabsTrigger>
-        </TabsList>
+      {/* Underline tabs */}
+      <div className="flex gap-6 border-b border-gray-800/50 mb-6">
+        {(['overview', 'chat'] as const).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`pb-3 text-sm font-medium transition-colors border-b-2 -mb-px ${
+              activeTab === tab
+                ? 'text-gray-100 border-teal-500'
+                : 'text-gray-500 border-transparent hover:text-gray-300'
+            }`}
+          >
+            {tab === 'overview' ? 'Overview' : 'AI Assistant'}
+          </button>
+        ))}
+      </div>
 
-        <TabsContent value="overview">
-          {computer.isOnline ? (
-            <SystemInfoPanel computerId={computer.id} />
-          ) : (
-            <div className="text-gray-500 p-8 text-center">
-              Computer is offline. System info unavailable.
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="chat">
-          <AIChat computerId={computer.id} isOnline={computer.isOnline} />
-        </TabsContent>
-      </Tabs>
+      {/* Tab content */}
+      {activeTab === 'overview' ? (
+        computer.isOnline ? (
+          <SystemInfoPanel computerId={computer.id} />
+        ) : (
+          <div className="text-gray-600 py-12 text-center text-sm">
+            Computer is offline. System info unavailable.
+          </div>
+        )
+      ) : (
+        <AIChat computerId={computer.id} isOnline={computer.isOnline} />
+      )}
     </div>
   );
 }
