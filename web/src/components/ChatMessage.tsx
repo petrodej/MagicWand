@@ -12,7 +12,7 @@ export function ChatMessage({ role, content, toolResults, pendingTools }: Messag
   if (role === 'user') {
     return (
       <div className="flex justify-end mb-4">
-        <div className="bg-purple-600 px-4 py-2.5 rounded-xl rounded-br-sm max-w-[70%] text-sm">
+        <div className="bg-teal-500/10 text-gray-100 rounded-2xl rounded-br-sm px-4 py-2.5 max-w-[70%] text-sm">
           {content}
         </div>
       </div>
@@ -29,7 +29,7 @@ export function ChatMessage({ role, content, toolResults, pendingTools }: Messag
 
   return (
     <div className="flex justify-start mb-4">
-      <div className="bg-gray-900 border border-gray-800 px-4 py-3 rounded-xl rounded-bl-sm max-w-[80%]">
+      <div className="bg-gray-900 border border-gray-800/50 rounded-2xl rounded-bl-sm px-4 py-3 max-w-[80%]">
         {blocks.map((block: any, i: number) => {
           if (block.type === 'text') {
             return (

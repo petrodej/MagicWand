@@ -137,7 +137,7 @@ export function AIChat({ computerId, isOnline }: Props) {
 
         {streamingContent.length > 0 && (
           <div className="flex justify-start mb-4">
-            <div className="bg-gray-900 border border-gray-800 px-4 py-3 rounded-xl rounded-bl-sm max-w-[80%]">
+            <div className="bg-gray-900 border border-gray-800/50 rounded-2xl rounded-bl-sm px-4 py-3 max-w-[80%]">
               {streamingContent.map((block, i) => {
                 if (block.type === 'text') {
                   return (
@@ -164,7 +164,7 @@ export function AIChat({ computerId, isOnline }: Props) {
         )}
 
         {busy && streamingContent.length === 0 && (
-          <div className="flex items-center gap-2 text-gray-500 text-sm ml-2">
+          <div className="flex items-center gap-2 text-gray-600 text-sm ml-2">
             <Loader2 className="w-4 h-4 animate-spin" /> Thinking...
           </div>
         )}
@@ -180,7 +180,7 @@ export function AIChat({ computerId, isOnline }: Props) {
             onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage(input)}
             placeholder={isOnline ? 'Ask MagicWand to fix something...' : 'Computer is offline'}
             disabled={!isOnline || busy}
-            className="bg-gray-900 border-gray-700"
+            className="bg-gray-900 border-gray-800"
           />
           {busy ? (
             <Button variant="destructive" size="icon" onClick={cancelAI}>
@@ -190,7 +190,7 @@ export function AIChat({ computerId, isOnline }: Props) {
             <Button
               onClick={() => sendMessage(input)}
               disabled={!input.trim() || !isOnline}
-              className="bg-purple-600 hover:bg-purple-700"
+              className="bg-teal-500 hover:bg-teal-400 text-gray-950"
             >
               <Send className="w-4 h-4" />
             </Button>
@@ -207,7 +207,7 @@ export function AIChat({ computerId, isOnline }: Props) {
                 key={qa.label}
                 onClick={() => sendMessage(qa.prompt)}
                 disabled={!isOnline}
-                className="px-3 py-1.5 bg-gray-900 border border-gray-800 rounded-full text-xs text-gray-400 hover:text-white hover:border-gray-600 transition"
+                className="px-3 py-1.5 bg-gray-900 border border-gray-800 rounded-full text-xs text-gray-500 hover:border-teal-500/30 hover:text-teal-400 transition"
               >
                 {qa.label}
               </button>
