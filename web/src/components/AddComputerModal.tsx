@@ -52,7 +52,7 @@ export function AddComputerModal({ open, onClose }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="bg-gray-900 border-gray-700 text-white max-w-lg">
+      <DialogContent className="bg-gray-900 border border-gray-800/50 text-gray-100 rounded-xl max-w-md">
         <DialogHeader>
           <DialogTitle>Add Computer</DialogTitle>
         </DialogHeader>
@@ -60,18 +60,18 @@ export function AddComputerModal({ open, onClose }: Props) {
         {!enrollment ? (
           <div className="space-y-4">
             <div>
-              <label className="text-sm text-gray-400 block mb-1">Computer Name (optional)</label>
+              <label className="text-sm text-gray-500 block mb-1">Computer Name (optional)</label>
               <Input
                 placeholder="e.g., Gaming PC"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="bg-gray-800 border-gray-700"
+                className="bg-gray-800/50 border-gray-800 text-gray-100 placeholder:text-gray-600"
               />
             </div>
             <Button
               onClick={handleGenerate}
               disabled={loading}
-              className="w-full bg-purple-600 hover:bg-purple-700"
+              className="w-full bg-teal-500 hover:bg-teal-400 text-gray-950 font-medium"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
               Generate Install Command
@@ -79,13 +79,13 @@ export function AddComputerModal({ open, onClose }: Props) {
           </div>
         ) : (
           <div className="space-y-4">
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-gray-500">
               Download and run this installer on the remote Windows computer:
             </p>
 
             <a
               href={`${window.location.origin}/api/download/install.bat?token=${enrollment.enrollToken}`}
-              className="flex items-center justify-center gap-2 w-full py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition"
+              className="flex items-center justify-center gap-2 w-full py-3 bg-teal-500 hover:bg-teal-400 text-gray-950 rounded-lg font-medium transition"
             >
               Download Installer (.bat)
             </a>
@@ -94,10 +94,10 @@ export function AddComputerModal({ open, onClose }: Props) {
               Double-click the downloaded file to install. No Python or other software needed.
             </p>
 
-            <details className="text-xs text-gray-600">
+            <details className="text-xs text-gray-500">
               <summary className="cursor-pointer hover:text-gray-400">Or copy PowerShell command</summary>
               <div className="relative mt-2">
-                <pre className="bg-gray-800 border border-gray-700 rounded-lg p-3 pr-12 font-mono text-green-400 overflow-x-auto whitespace-pre-wrap break-all">
+                <pre className="bg-gray-950 border border-gray-800/50 rounded-lg p-3 pr-12 font-mono text-teal-400 overflow-x-auto whitespace-pre-wrap break-all">
                   {`irm ${window.location.origin}/api/download/install.ps1?token=${enrollment.enrollToken} | iex`}
                 </pre>
                 <Button
