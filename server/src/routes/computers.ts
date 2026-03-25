@@ -3,6 +3,7 @@ import { z } from 'zod';
 import crypto from 'crypto';
 import { prisma } from '../db.js';
 import { requireAuth } from '../middleware/auth.js';
+import { executeAgentCommand, AgentOfflineError } from '../services/agentBridge.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -101,6 +102,28 @@ router.delete('/:id', async (req, res) => {
   }
   // TODO: disconnect agent WebSocket if online
   res.json({ success: true });
+});
+
+// Get live system info from agent
+router.get('/:id/system-info', async (req, res) => {
+  const computer = await prisma.computer.findFirst({
+    where: { id: req.params.id, userId: req.userId },
+  });
+  if (!computer) {
+    res.status(404).json({ error: 'NOT_FOUND', message: 'Computer not found.' });
+    return;
+  }
+
+  try {
+    const info = await executeAgentCommand(computer.id, 'system_info', {});
+    res.json(info);
+  } catch (err) {
+    if (err instanceof AgentOfflineError) {
+      res.status(400).json({ error: 'AGENT_OFFLINE', message: 'Computer is offline.' });
+      return;
+    }
+    res.status(500).json({ error: 'INTERNAL_ERROR', message: 'Failed to get system info.' });
+  }
 });
 
 export default router;

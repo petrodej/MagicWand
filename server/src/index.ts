@@ -11,7 +11,9 @@ import authRoutes from './routes/auth.js';
 import { validateWsToken } from './routes/auth.js';
 import computerRoutes from './routes/computers.js';
 import agentRoutes from './routes/agent.js';
+import chatRoutes from './routes/chat.js';
 import { setupAgentWebSocket, addDashboardClient } from './ws/agentHandler.js';
+import { addChatClient } from './ws/chatHandler.js';
 
 export const logger = pino({ transport: { target: 'pino-pretty' } });
 
@@ -26,12 +28,14 @@ app.get('/api/health', (_req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/computers', computerRoutes);
+app.use('/api/computers', chatRoutes);
 app.use('/api/agent', agentRoutes);
 
 const server = createServer(app);
 
 const agentWss = new WebSocketServer({ noServer: true });
 const dashboardWss = new WebSocketServer({ noServer: true });
+const chatWss = new WebSocketServer({ noServer: true });
 
 setupAgentWebSocket(agentWss);
 
@@ -58,6 +62,19 @@ server.on('upgrade', async (request, socket, head) => {
     }
     dashboardWss.handleUpgrade(request, socket, head, (ws) => {
       dashboardWss.emit('connection', ws, request);
+    });
+    return;
+  }
+
+  const chatMatch = pathname.match(/^\/ws\/chat\/([a-f0-9-]+)$/);
+  if (chatMatch) {
+    const token = url.searchParams.get('token');
+    if (!token || !validateWsToken(token)) {
+      socket.destroy();
+      return;
+    }
+    chatWss.handleUpgrade(request, socket, head, (ws) => {
+      addChatClient(chatMatch[1], ws);
     });
     return;
   }
