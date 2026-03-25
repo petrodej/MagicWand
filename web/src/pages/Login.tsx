@@ -28,47 +28,53 @@ export function Login() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-950">
-      <div className="w-full max-w-sm p-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-purple-400">✦ MagicWand</h1>
-          <p className="text-gray-500 mt-2 text-sm">Remote Computer Management</p>
-          <p className="text-gray-600 mt-1 text-xs font-mono">admin@magicwand.local / changeme</p>
+      <div className="w-full max-w-sm">
+        <div className="bg-gray-900 border border-gray-800/50 rounded-xl p-8">
+          <div className="text-center mb-8">
+            <div className="flex items-center justify-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-teal-500/10 flex items-center justify-center">
+                <span className="text-teal-400 font-bold text-lg">M</span>
+              </div>
+              <h1 className="text-xl font-semibold text-gray-100">MagicWand</h1>
+            </div>
+            <p className="text-gray-500 text-sm">Remote Management Platform</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="bg-gray-800/50 border-gray-800 text-gray-100 placeholder:text-gray-600"
+                required
+              />
+            </div>
+            <div>
+              <Input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="bg-gray-800/50 border-gray-800 text-gray-100 placeholder:text-gray-600"
+                required
+              />
+            </div>
+
+            {error && (
+              <p className="text-red-400 text-sm">{error}</p>
+            )}
+
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-teal-500 hover:bg-teal-400 text-gray-950 font-medium"
+            >
+              {loading ? 'Signing in...' : 'Sign In'}
+            </Button>
+          </form>
         </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="bg-gray-900 border-gray-700 text-white"
-              required
-            />
-          </div>
-          <div>
-            <Input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="bg-gray-900 border-gray-700 text-white"
-              required
-            />
-          </div>
-
-          {error && (
-            <p className="text-red-400 text-sm">{error}</p>
-          )}
-
-          <Button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-purple-600 hover:bg-purple-700"
-          >
-            {loading ? 'Signing in...' : 'Sign In'}
-          </Button>
-        </form>
       </div>
     </div>
   );
