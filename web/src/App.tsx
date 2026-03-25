@@ -4,12 +4,13 @@ import { useAuthStore } from './stores/authStore';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { ComputerView } from './pages/ComputerView';
+import { AppLayout } from './components/AppLayout';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuthStore();
-  if (isLoading) return <div className="flex items-center justify-center h-screen bg-gray-950 text-white">Loading...</div>;
+  if (isLoading) return <div className="flex items-center justify-center h-screen bg-gray-950 text-gray-500">Loading...</div>;
   if (!isAuthenticated) return <Navigate to="/login" />;
-  return <>{children}</>;
+  return <AppLayout>{children}</AppLayout>;
 }
 
 export default function App() {
