@@ -37,60 +37,77 @@ export function SystemInfoPanel({ computerId }: { computerId: string }) {
       .finally(() => setLoading(false));
   }, [computerId]);
 
-  if (loading) return <div className="text-gray-500 p-4">Fetching system info...</div>;
-  if (error) return <div className="text-red-400 p-4">{error}</div>;
+  if (loading) return <div className="text-gray-500 text-sm p-4">Fetching system info...</div>;
+  if (error) return <div className="text-red-400 text-sm p-4">{error}</div>;
   if (!info) return null;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
-      <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
-        <h3 className="text-sm font-semibold text-gray-400 mb-3 flex items-center gap-2">
-          <Cpu className="w-4 h-4" /> System
+      {/* System */}
+      <div className="bg-gray-900 border border-gray-800/50 rounded-xl p-5">
+        <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+          <Cpu className="text-gray-600 w-4 h-4" /> System
         </h3>
-        <div className="space-y-2 text-sm">
-          <div><span className="text-gray-500">Hostname:</span> {info.hostname}</div>
-          <div><span className="text-gray-500">OS:</span> {info.os}</div>
-          <div><span className="text-gray-500">CPU:</span> {info.cpu_model} ({info.cpu_count} cores)</div>
-          <div><span className="text-gray-500">Uptime:</span> {formatUptime(info.uptime_seconds)}</div>
+        <div className="space-y-3">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs text-gray-500">Hostname</span>
+            <span className="font-mono text-sm text-gray-300">{info.hostname}</span>
+          </div>
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs text-gray-500">OS</span>
+            <span className="text-sm text-gray-300">{info.os}</span>
+          </div>
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs text-gray-500">CPU</span>
+            <span className="text-sm text-gray-300">{info.cpu_model} ({info.cpu_count} cores)</span>
+          </div>
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs text-gray-500">Uptime</span>
+            <span className="text-sm text-gray-300">{formatUptime(info.uptime_seconds)}</span>
+          </div>
         </div>
       </div>
 
-      <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
-        <h3 className="text-sm font-semibold text-gray-400 mb-3 flex items-center gap-2">
-          <MemoryStick className="w-4 h-4" /> Resources
+      {/* Resources */}
+      <div className="bg-gray-900 border border-gray-800/50 rounded-xl p-5">
+        <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+          <MemoryStick className="text-gray-600 w-4 h-4" /> Resources
         </h3>
         <div className="space-y-3">
           <div>
-            <div className="flex justify-between text-xs text-gray-400 mb-1">
-              <span>CPU</span><span>{info.cpu_percent}%</span>
+            <div className="flex justify-between text-xs text-gray-500 mb-1.5">
+              <span>CPU</span>
+              <span>{info.cpu_percent}%</span>
             </div>
-            <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
-              <div className="h-full bg-blue-500 rounded-full" style={{ width: `${info.cpu_percent}%` }} />
+            <div className="h-0.5 bg-gray-800 rounded-full overflow-hidden">
+              <div className="h-full bg-teal-500 rounded-full" style={{ width: `${info.cpu_percent}%` }} />
             </div>
           </div>
           <div>
-            <div className="flex justify-between text-xs text-gray-400 mb-1">
-              <span>RAM ({info.ram_used_mb}MB / {info.ram_total_mb}MB)</span><span>{info.ram_percent}%</span>
+            <div className="flex justify-between text-xs text-gray-500 mb-1.5">
+              <span>RAM ({info.ram_used_mb}MB / {info.ram_total_mb}MB)</span>
+              <span>{info.ram_percent}%</span>
             </div>
-            <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
-              <div className="h-full bg-purple-500 rounded-full" style={{ width: `${info.ram_percent}%` }} />
+            <div className="h-0.5 bg-gray-800 rounded-full overflow-hidden">
+              <div className="h-full bg-gray-400 rounded-full" style={{ width: `${info.ram_percent}%` }} />
             </div>
           </div>
         </div>
       </div>
 
-      <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
-        <h3 className="text-sm font-semibold text-gray-400 mb-3 flex items-center gap-2">
-          <HardDrive className="w-4 h-4" /> Disks
+      {/* Disks */}
+      <div className="bg-gray-900 border border-gray-800/50 rounded-xl p-5">
+        <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+          <HardDrive className="text-gray-600 w-4 h-4" /> Disks
         </h3>
-        <div className="space-y-2 text-sm">
+        <div className="space-y-3">
           {info.disks.map((d) => (
             <div key={d.mountpoint}>
-              <div className="flex justify-between text-xs text-gray-400 mb-1">
+              <div className="flex justify-between text-xs text-gray-500 mb-1.5">
                 <span>{d.mountpoint} ({d.device})</span>
                 <span>{d.used_gb}GB / {d.total_gb}GB</span>
               </div>
-              <div className="h-1.5 bg-gray-700 rounded-full overflow-hidden">
+              <div className="h-0.5 bg-gray-800 rounded-full overflow-hidden">
                 <div
                   className={`h-full rounded-full ${d.percent > 90 ? 'bg-red-500' : 'bg-emerald-500'}`}
                   style={{ width: `${d.percent}%` }}
@@ -101,15 +118,16 @@ export function SystemInfoPanel({ computerId }: { computerId: string }) {
         </div>
       </div>
 
-      <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
-        <h3 className="text-sm font-semibold text-gray-400 mb-3 flex items-center gap-2">
-          <Wifi className="w-4 h-4" /> Network
+      {/* Network */}
+      <div className="bg-gray-900 border border-gray-800/50 rounded-xl p-5">
+        <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+          <Wifi className="text-gray-600 w-4 h-4" /> Network
         </h3>
-        <div className="space-y-1 text-sm">
+        <div className="space-y-3">
           {info.network_interfaces.map((n, i) => (
-            <div key={i}>
-              <span className="text-gray-500">{n.interface}:</span>{' '}
-              <span className="font-mono text-xs">{n.ip}</span>
+            <div key={i} className="flex flex-col gap-0.5">
+              <span className="text-xs text-gray-500">{n.interface}</span>
+              <span className="font-mono text-sm text-gray-300">{n.ip}</span>
             </div>
           ))}
         </div>
