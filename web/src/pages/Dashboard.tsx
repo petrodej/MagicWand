@@ -7,7 +7,7 @@ import { AddComputerModal } from '../components/AddComputerModal';
 import { useAuthStore } from '../stores/authStore';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../lib/api';
+import { api, getWsBase } from '../lib/api';
 
 export function Dashboard() {
   const { computers, loading, fetchComputers, updateStatus, updateHeartbeat } = useComputerStore();
@@ -22,7 +22,7 @@ export function Dashboard() {
   }, [fetchComputers]);
 
   const wsUrl = wsToken
-    ? `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/dashboard?token=${wsToken}`
+    ? `${getWsBase()}/ws/dashboard?token=${wsToken}`
     : '';
 
   useWebSocket({

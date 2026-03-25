@@ -75,11 +75,16 @@ export function setupAgentWebSocket(wss: WebSocketServer) {
 
       // Handle heartbeat
       if (data.type === 'heartbeat') {
-        await prisma.computer.update({
-          where: { id: computerId },
-          data: { lastSeen: new Date() },
-        });
-        broadcastHeartbeat(computerId, data);
+        try {
+          await prisma.computer.update({
+            where: { id: computerId },
+            data: { lastSeen: new Date() },
+          });
+          broadcastHeartbeat(computerId, data);
+        } catch {
+          // Computer was deleted — disconnect agent
+          ws.close();
+        }
         return;
       }
 

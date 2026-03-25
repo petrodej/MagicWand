@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser';
 import { createServer } from 'http';
 import { WebSocketServer } from 'ws';
 import { URL } from 'url';
+import path from 'path';
 import { config } from './config.js';
 import pino from 'pino';
 import { seedAdminUser } from './services/auth.js';
@@ -12,6 +13,7 @@ import { validateWsToken } from './routes/auth.js';
 import computerRoutes from './routes/computers.js';
 import agentRoutes from './routes/agent.js';
 import chatRoutes from './routes/chat.js';
+import downloadRoutes from './routes/download.js';
 import { setupAgentWebSocket, addDashboardClient } from './ws/agentHandler.js';
 import { addChatClient } from './ws/chatHandler.js';
 
@@ -30,6 +32,14 @@ app.use('/api/auth', authRoutes);
 app.use('/api/computers', computerRoutes);
 app.use('/api/computers', chatRoutes);
 app.use('/api/agent', agentRoutes);
+app.use('/api/download', downloadRoutes);
+
+// Serve frontend static files
+const webDist = path.resolve(process.cwd(), '../web/dist');
+app.use(express.static(webDist));
+app.get('{*path}', (_req, res) => {
+  res.sendFile(path.join(webDist, 'index.html'));
+});
 
 const server = createServer(app);
 

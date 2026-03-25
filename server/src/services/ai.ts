@@ -373,6 +373,9 @@ export async function runAIChat(
     onStream({ type: 'text', data: '\n\n*Reached maximum diagnostic steps. Please start a new session if the issue is unresolved.*' });
     onStream({ type: 'done' });
 
+  } catch (err: any) {
+    logger.error({ err: err.message, status: err.status }, 'AI loop error');
+    onStream({ type: 'error', data: err.message || 'AI error' });
   } finally {
     activeLoops.delete(computerId);
   }

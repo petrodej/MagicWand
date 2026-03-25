@@ -80,24 +80,38 @@ export function AddComputerModal({ open, onClose }: Props) {
         ) : (
           <div className="space-y-4">
             <p className="text-sm text-gray-400">
-              Run this command on the remote computer to install the agent:
+              Download and run this installer on the remote Windows computer:
             </p>
 
-            <div className="relative">
-              <pre className="bg-gray-800 border border-gray-700 rounded-lg p-3 pr-12 text-xs font-mono text-green-400 overflow-x-auto whitespace-pre-wrap break-all">
-                python main.py --enroll {enrollment.enrollToken} --server {window.location.origin}
-              </pre>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="absolute top-2 right-2 text-gray-400 hover:text-white"
-                onClick={() => handleCopy(
-                  `python main.py --enroll ${enrollment.enrollToken} --server ${window.location.origin}`
-                )}
-              >
-                {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
-              </Button>
-            </div>
+            <a
+              href={`${window.location.origin}/api/download/install.bat?token=${enrollment.enrollToken}`}
+              className="flex items-center justify-center gap-2 w-full py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition"
+            >
+              Download Installer (.bat)
+            </a>
+
+            <p className="text-xs text-gray-500">
+              Double-click the downloaded file to install. No Python or other software needed.
+            </p>
+
+            <details className="text-xs text-gray-600">
+              <summary className="cursor-pointer hover:text-gray-400">Or copy PowerShell command</summary>
+              <div className="relative mt-2">
+                <pre className="bg-gray-800 border border-gray-700 rounded-lg p-3 pr-12 font-mono text-green-400 overflow-x-auto whitespace-pre-wrap break-all">
+                  {`irm ${window.location.origin}/api/download/install.ps1?token=${enrollment.enrollToken} | iex`}
+                </pre>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute top-2 right-2 text-gray-400 hover:text-white"
+                  onClick={() => handleCopy(
+                    `irm ${window.location.origin}/api/download/install.ps1?token=${enrollment.enrollToken} | iex`
+                  )}
+                >
+                  {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+                </Button>
+              </div>
+            </details>
 
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <Loader2 className="w-4 h-4 animate-spin" />

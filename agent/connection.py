@@ -45,7 +45,7 @@ class AgentConnection:
                     finally:
                         heartbeat_task.cancel()
 
-            except (websockets.ConnectionClosed, ConnectionRefusedError, OSError) as e:
+            except Exception as e:
                 print(f"Connection lost: {e}. Reconnecting in {self._backoff}s...")
                 await asyncio.sleep(self._backoff)
                 self._backoff = min(self._backoff * 2, self._max_backoff)

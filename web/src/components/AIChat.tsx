@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import { Send, Loader2, X, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { api } from '../lib/api';
+import { api, getWsBase } from '../lib/api';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { ChatMessage } from './ChatMessage';
 import { ToolCallDisplay } from './ToolCallDisplay';
@@ -40,7 +40,7 @@ export function AIChat({ computerId, isOnline }: Props) {
   }, [messages, streamingContent, toolResults]);
 
   const wsUrl = wsToken
-    ? `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/chat/${computerId}?token=${wsToken}`
+    ? `${getWsBase()}/ws/chat/${computerId}?token=${wsToken}`
     : '';
 
   const handleWsMessage = useCallback((event: any) => {
@@ -89,7 +89,7 @@ export function AIChat({ computerId, isOnline }: Props) {
     setToolResults(new Map());
 
     setMessages((prev) => [...prev, {
-      id: crypto.randomUUID(),
+      id: Math.random().toString(36).slice(2) + Date.now().toString(36),
       role: 'user',
       content: text,
       createdAt: new Date().toISOString(),
@@ -97,8 +97,14 @@ export function AIChat({ computerId, isOnline }: Props) {
 
     try {
       await api.post(`/api/computers/${computerId}/chat`, { message: text });
-    } catch {
+    } catch (err: any) {
       setBusy(false);
+      setMessages((prev) => [...prev, {
+        id: Math.random().toString(36).slice(2) + Date.now().toString(36),
+        role: 'assistant',
+        content: `**Error:** ${err.message || 'Failed to send message'}`,
+        createdAt: new Date().toISOString(),
+      } as ChatMsg]);
     }
   };
 

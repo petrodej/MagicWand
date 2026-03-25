@@ -1,7 +1,12 @@
 import argparse
 import asyncio
 import sys
+import os
 import platform
+
+# Ensure the agent's own directory is on the module path (needed for embedded Python)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 import psutil
 import requests
 
