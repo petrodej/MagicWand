@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Monitor, Bell, ScrollText, Clock, Code2, Users, PanelLeftClose, PanelLeft, LogOut } from 'lucide-react';
+import { Monitor, Bell, ScrollText, Clock, Code2, Users, Sun, Moon, PanelLeftClose, PanelLeft, LogOut } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
+import { useThemeStore } from '../stores/themeStore';
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { logout, role } = useAuthStore();
+  const { theme, toggleTheme } = useThemeStore();
 
   const isDashboardActive =
     location.pathname.startsWith('/dashboard') ||
@@ -138,6 +140,18 @@ export function Sidebar() {
 
       {/* Bottom controls */}
       <div className="px-2 py-3 border-t border-gray-800/50 flex flex-col gap-1 shrink-0">
+        <button
+          onClick={toggleTheme}
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm text-gray-500 hover:text-gray-300 transition-colors"
+          title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          {theme === 'dark' ? (
+            <Sun size={16} className="shrink-0" />
+          ) : (
+            <Moon size={16} className="shrink-0" />
+          )}
+          {!collapsed && <span>{theme === 'dark' ? 'Light mode' : 'Dark mode'}</span>}
+        </button>
         <button
           onClick={() => setCollapsed((c) => !c)}
           className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm text-gray-500 hover:text-gray-300 transition-colors"

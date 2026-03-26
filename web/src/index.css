@@ -128,3 +128,50 @@
     @apply font-sans;
     }
 }
+
+/* Light mode overrides for hardcoded dark theme colors */
+html.light {
+  /* Backgrounds */
+  .bg-gray-950 { background-color: #ffffff !important; }
+  .bg-gray-900 { background-color: #f9fafb !important; }
+  .bg-gray-800 { background-color: #f3f4f6 !important; }
+  .hover\:bg-gray-800\/30:hover { background-color: rgb(243 244 246 / 0.5) !important; }
+  .hover\:bg-gray-800\/20:hover { background-color: rgb(243 244 246 / 0.4) !important; }
+  .hover\:bg-gray-800\/50:hover { background-color: rgb(243 244 246 / 0.7) !important; }
+  .bg-gray-800\/50 { background-color: rgb(243 244 246 / 0.7) !important; }
+  .bg-gray-800\/20 { background-color: rgb(243 244 246 / 0.4) !important; }
+  .bg-gray-800\/30 { background-color: rgb(243 244 246 / 0.5) !important; }
+
+  /* Text */
+  .text-gray-100 { color: #111827 !important; }
+  .text-gray-200 { color: #1f2937 !important; }
+  .text-gray-300 { color: #374151 !important; }
+  .text-gray-400 { color: #4b5563 !important; }
+  .text-gray-500 { color: #6b7280 !important; }
+  .text-gray-600 { color: #9ca3af !important; }
+  .text-gray-700 { color: #d1d5db !important; }
+  .hover\:text-gray-300:hover { color: #374151 !important; }
+  .hover\:text-gray-200:hover { color: #1f2937 !important; }
+
+  /* Borders */
+  .border-gray-800\/50 { border-color: rgb(229 231 235 / 0.7) !important; }
+  .border-gray-800\/30 { border-color: rgb(229 231 235 / 0.5) !important; }
+  .border-gray-800 { border-color: #e5e7eb !important; }
+  .border-gray-700 { border-color: #d1d5db !important; }
+  .border-gray-700\/50 { border-color: rgb(209 213 219 / 0.7) !important; }
+  .hover\:border-gray-700\/50:hover { border-color: rgb(209 213 219 / 0.7) !important; }
+  .hover\:border-gray-700:hover { border-color: #d1d5db !important; }
+  .border-r.border-gray-800\/50 { border-color: rgb(229 231 235 / 0.7) !important; }
+  .border-b.border-gray-800\/50 { border-color: rgb(229 231 235 / 0.7) !important; }
+
+  /* Inputs */
+  input.bg-gray-800, select.bg-gray-800, textarea.bg-gray-800 {
+    background-color: #ffffff !important;
+    border-color: #d1d5db !important;
+    color: #111827 !important;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar-track { background: #f3f4f6; }
+  ::-webkit-scrollbar-thumb { background: #d1d5db; }
+}
