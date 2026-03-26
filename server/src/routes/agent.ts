@@ -1,5 +1,8 @@
 import { Router } from 'express';
 import { z } from 'zod';
+import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
 import { prisma } from '../db.js';
 
 const router = Router();
@@ -57,6 +60,48 @@ router.post('/enroll', async (req, res) => {
     agentSecret: updated.agentSecret,
     computerId: updated.id,
   });
+});
+
+// Agent update check — receives file hashes, returns list of changed files
+router.post('/check-update', async (req, res) => {
+  const clientHashes: Record<string, string> = req.body.hashes || {};
+
+  const agentDir = path.resolve(process.cwd(), '../agent');
+  const files = [
+    'main.py', 'config.py', 'connection.py', 'security.py', 'requirements.txt',
+  ];
+  const cmdFiles = [
+    '__init__.py', 'execute.py', 'screenshot.py', 'system_info.py', 'processes.py',
+    'event_logs.py', 'services.py', 'software.py', 'files.py', 'network.py',
+    'input_control.py', 'file_manager.py',
+  ];
+
+  const updates: { path: string; url: string }[] = [];
+
+  for (const file of files) {
+    const filePath = path.join(agentDir, file);
+    try {
+      const content = fs.readFileSync(filePath);
+      const hash = crypto.createHash('md5').update(content).digest('hex');
+      if (clientHashes[file] !== hash) {
+        updates.push({ path: file, url: `/api/download/agent/${file}` });
+      }
+    } catch {}
+  }
+
+  for (const file of cmdFiles) {
+    const filePath = path.join(agentDir, 'commands', file);
+    const key = `commands/${file}`;
+    try {
+      const content = fs.readFileSync(filePath);
+      const hash = crypto.createHash('md5').update(content).digest('hex');
+      if (clientHashes[key] !== hash) {
+        updates.push({ path: key, url: `/api/download/agent/commands/${file}` });
+      }
+    } catch {}
+  }
+
+  res.json({ updates, requiresRestart: updates.some((u) => u.path === 'main.py' || u.path === 'connection.py' || u.path === 'requirements.txt') });
 });
 
 export default router;
