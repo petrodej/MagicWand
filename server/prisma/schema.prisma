@@ -16,6 +16,7 @@ model User {
   sessions      Session[]
   alertRules    AlertRule[]
   alertLogs     AlertLog[]
+  auditLogs     AuditLog[]
 }
 
 model Computer {
@@ -40,6 +41,7 @@ model Computer {
   chatMessages  ChatMessage[]
   alertRules    AlertRule[]
   alertLogs     AlertLog[]
+  auditLogs     AuditLog[]
 }
 
 model ChatMessage {
@@ -74,6 +76,18 @@ model AlertLog {
   type          String
   message       String
   resolved      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+}
+
+model AuditLog {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  computerId    String?
+  computer      Computer? @relation(fields: [computerId], references: [id], onDelete: SetNull)
+  action        String   // "execute_command", "remote_session", "file_upload", "file_delete", "computer_add", "computer_delete", "alert_rule_create", etc.
+  details       String?  // JSON string with extra context
+  ipAddress     String?
   createdAt     DateTime @default(now())
 }
 

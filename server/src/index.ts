@@ -18,6 +18,7 @@ import { setupAgentWebSocket, addDashboardClient } from './ws/agentHandler.js';
 import { addChatClient } from './ws/chatHandler.js';
 import { setupRemoteHandler } from './ws/remoteHandler.js';
 import alertRoutes from './routes/alerts.js';
+import auditRoutes from './routes/audit.js';
 import { startAlertMonitor } from './services/alertMonitor.js';
 
 export const logger = pino({ transport: { target: 'pino-pretty' } });
@@ -37,6 +38,7 @@ app.use('/api/computers', chatRoutes);
 app.use('/api/agent', agentRoutes);
 app.use('/api/download', downloadRoutes);
 app.use('/api/alerts', alertRoutes);
+app.use('/api/audit', auditRoutes);
 
 // Serve frontend static files
 const webDist = path.resolve(process.cwd(), '../web/dist');

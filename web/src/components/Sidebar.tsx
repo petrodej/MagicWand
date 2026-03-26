@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Monitor, Bell, PanelLeftClose, PanelLeft, LogOut } from 'lucide-react';
+import { Monitor, Bell, ScrollText, PanelLeftClose, PanelLeft, LogOut } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
 
 export function Sidebar() {
@@ -13,6 +13,7 @@ export function Sidebar() {
     location.pathname.startsWith('/dashboard') ||
     location.pathname.startsWith('/computers');
   const isAlertsActive = location.pathname.startsWith('/alerts');
+  const isAuditActive = location.pathname.startsWith('/audit');
 
   const handleLogout = async () => {
     await logout();
@@ -67,6 +68,21 @@ export function Sidebar() {
           )}
           <Bell size={16} className="shrink-0" />
           {!collapsed && <span>Alerts</span>}
+        </button>
+
+        <button
+          onClick={() => navigate('/audit')}
+          className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors relative ${
+            isAuditActive
+              ? 'bg-gray-800/50 text-gray-100'
+              : 'text-gray-500 hover:text-gray-300'
+          }`}
+        >
+          {isAuditActive && (
+            <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 bg-teal-500 rounded-full" />
+          )}
+          <ScrollText size={16} className="shrink-0" />
+          {!collapsed && <span>Audit Log</span>}
         </button>
       </nav>
 

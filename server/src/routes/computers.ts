@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import { prisma } from '../db.js';
 import { requireAuth } from '../middleware/auth.js';
 import { executeAgentCommand, AgentOfflineError } from '../services/agentBridge.js';
+import { logAudit } from '../services/audit.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -41,6 +42,8 @@ router.post('/', async (req, res) => {
       enrollExpiry,
     },
   });
+
+  logAudit({ userId: req.userId!, action: 'computer_add', computerId: computer.id, details: { name }, ipAddress: req.ip });
 
   res.json({
     id: computer.id,
@@ -120,7 +123,7 @@ router.delete('/:id', async (req, res) => {
     res.status(404).json({ error: 'NOT_FOUND', message: 'Computer not found.' });
     return;
   }
-  // TODO: disconnect agent WebSocket if online
+  logAudit({ userId: req.userId!, action: 'computer_delete', computerId: req.params.id, ipAddress: req.ip });
   res.json({ success: true });
 });
 
@@ -159,6 +162,7 @@ router.post('/:id/execute', async (req, res) => {
       shell: req.body.shell || 'powershell',
       timeout: Math.min(req.body.timeout || 30, 120),
     });
+    logAudit({ userId: req.userId!, action: 'execute_command', computerId: computer.id, details: { command: req.body.command }, ipAddress: req.ip });
     res.json(result);
   } catch (err) {
     if (err instanceof AgentOfflineError) { res.status(400).json({ error: 'AGENT_OFFLINE', message: 'Computer is offline.' }); return; }
@@ -208,6 +212,7 @@ router.post('/:id/files/upload', async (req, res) => {
       path: req.body.path,
       data_base64: req.body.data_base64,
     });
+    logAudit({ userId: req.userId!, action: 'file_upload', computerId: computer.id, details: { path: req.body.path }, ipAddress: req.ip });
     res.json(result);
   } catch (err) {
     if (err instanceof AgentOfflineError) { res.status(400).json({ error: 'AGENT_OFFLINE', message: 'Computer is offline.' }); return; }
@@ -223,6 +228,7 @@ router.post('/:id/files/delete', async (req, res) => {
 
   try {
     const result = await executeAgentCommand(computer.id, 'delete_path', { path: req.body.path });
+    logAudit({ userId: req.userId!, action: 'file_delete', computerId: computer.id, details: { path: req.body.path }, ipAddress: req.ip });
     res.json(result);
   } catch (err) {
     if (err instanceof AgentOfflineError) { res.status(400).json({ error: 'AGENT_OFFLINE', message: 'Computer is offline.' }); return; }

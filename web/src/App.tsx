@@ -6,6 +6,7 @@ import { Dashboard } from './pages/Dashboard';
 import { ComputerView } from './pages/ComputerView';
 import { AppLayout } from './components/AppLayout';
 import { Alerts } from './pages/Alerts';
+import { AuditLog } from './pages/AuditLog';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuthStore();
@@ -28,6 +29,7 @@ export default function App() {
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/computers/:id" element={<ProtectedRoute><ComputerView /></ProtectedRoute>} />
         <Route path="/alerts" element={<ProtectedRoute><Alerts /></ProtectedRoute>} />
+        <Route path="/audit" element={<ProtectedRoute><AuditLog /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/dashboard" />} />
       </Routes>
     </BrowserRouter>
