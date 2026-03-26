@@ -9,6 +9,8 @@ import { AIChat } from '../components/AIChat';
 import { RemoteDesktop } from '../components/RemoteDesktop';
 import { FileManager } from '../components/FileManager';
 import { Terminal } from '../components/Terminal';
+import { ProcessManager } from '../components/ProcessManager';
+import { ServiceManager } from '../components/ServiceManager';
 
 export function ComputerView() {
   const { id } = useParams<{ id: string }>();
@@ -72,7 +74,7 @@ export function ComputerView() {
 
       {/* Underline tabs */}
       <div className="flex gap-6 border-b border-gray-800/50 mb-6">
-        {(['overview', 'remote', 'terminal', 'files', 'chat'] as const).map((tab) => (
+        {(['overview', 'remote', 'terminal', 'processes', 'services', 'files', 'chat'] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -82,7 +84,10 @@ export function ComputerView() {
                 : 'text-gray-500 border-transparent hover:text-gray-300'
             }`}
           >
-            {tab === 'overview' ? 'Overview' : tab === 'remote' ? 'Remote' : tab === 'terminal' ? 'Terminal' : tab === 'files' ? 'Files' : 'AI Assistant'}
+            {{
+              overview: 'Overview', remote: 'Remote', terminal: 'Terminal',
+              processes: 'Processes', services: 'Services', files: 'Files', chat: 'AI Assistant',
+            }[tab]}
           </button>
         ))}
       </div>
@@ -98,6 +103,10 @@ export function ComputerView() {
         )
       ) : activeTab === 'terminal' ? (
         <Terminal computerId={computer.id} isOnline={computer.isOnline} />
+      ) : activeTab === 'processes' ? (
+        <ProcessManager computerId={computer.id} isOnline={computer.isOnline} />
+      ) : activeTab === 'services' ? (
+        <ServiceManager computerId={computer.id} isOnline={computer.isOnline} />
       ) : activeTab === 'files' ? (
         <FileManager computerId={computer.id} isOnline={computer.isOnline} />
       ) : activeTab === 'remote' ? (

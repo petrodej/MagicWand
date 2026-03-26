@@ -131,9 +131,9 @@ async def handle_command(command: str, params: dict) -> dict:
     from commands.execute import execute_command
     from commands.screenshot import screenshot
     from commands.system_info import system_info
-    from commands.processes import list_processes
+    from commands.processes import list_processes, kill_process
     from commands.event_logs import get_event_logs
-    from commands.services import manage_service
+    from commands.services import manage_service, list_services
     from commands.software import get_installed_software
     from commands.files import read_file, write_file
     from commands.network import network_diagnostics
@@ -143,8 +143,10 @@ async def handle_command(command: str, params: dict) -> dict:
         "screenshot": screenshot,
         "system_info": system_info,
         "list_processes": list_processes,
+        "kill_process": kill_process,
         "get_event_logs": get_event_logs,
         "manage_service": manage_service,
+        "list_services": list_services,
         "get_installed_software": get_installed_software,
         "read_file": read_file,
         "write_file": write_file,

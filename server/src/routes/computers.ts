@@ -170,6 +170,67 @@ router.post('/:id/execute', async (req, res) => {
   }
 });
 
+// Process manager
+router.get('/:id/processes', async (req, res) => {
+  const computer = await prisma.computer.findFirst({ where: { id: req.params.id, userId: req.userId } });
+  if (!computer) { res.status(404).json({ error: 'NOT_FOUND' }); return; }
+  try {
+    const result = await executeAgentCommand(computer.id, 'list_processes', {
+      sort_by: (req.query.sort as string) || 'memory',
+      top_n: parseInt(req.query.limit as string) || 50,
+    });
+    res.json(result);
+  } catch (err) {
+    if (err instanceof AgentOfflineError) { res.status(400).json({ error: 'AGENT_OFFLINE' }); return; }
+    res.status(500).json({ error: 'INTERNAL_ERROR' });
+  }
+});
+
+router.post('/:id/processes/kill', async (req, res) => {
+  const computer = await prisma.computer.findFirst({ where: { id: req.params.id, userId: req.userId } });
+  if (!computer) { res.status(404).json({ error: 'NOT_FOUND' }); return; }
+  try {
+    const result = await executeAgentCommand(computer.id, 'kill_process', { pid: req.body.pid });
+    logAudit({ userId: req.userId!, action: 'kill_process', computerId: computer.id, details: { pid: req.body.pid }, ipAddress: req.ip });
+    res.json(result);
+  } catch (err) {
+    if (err instanceof AgentOfflineError) { res.status(400).json({ error: 'AGENT_OFFLINE' }); return; }
+    res.status(500).json({ error: 'INTERNAL_ERROR' });
+  }
+});
+
+// Service manager
+router.get('/:id/services', async (req, res) => {
+  const computer = await prisma.computer.findFirst({ where: { id: req.params.id, userId: req.userId } });
+  if (!computer) { res.status(404).json({ error: 'NOT_FOUND' }); return; }
+  try {
+    const result = await executeAgentCommand(computer.id, 'list_services', {
+      status: (req.query.status as string) || '',
+      search: (req.query.search as string) || '',
+    });
+    res.json(result);
+  } catch (err) {
+    if (err instanceof AgentOfflineError) { res.status(400).json({ error: 'AGENT_OFFLINE' }); return; }
+    res.status(500).json({ error: 'INTERNAL_ERROR' });
+  }
+});
+
+router.post('/:id/services/manage', async (req, res) => {
+  const computer = await prisma.computer.findFirst({ where: { id: req.params.id, userId: req.userId } });
+  if (!computer) { res.status(404).json({ error: 'NOT_FOUND' }); return; }
+  try {
+    const result = await executeAgentCommand(computer.id, 'manage_service', {
+      service_name: req.body.serviceName,
+      action: req.body.action,
+    });
+    logAudit({ userId: req.userId!, action: 'manage_service', computerId: computer.id, details: { service: req.body.serviceName, action: req.body.action }, ipAddress: req.ip });
+    res.json(result);
+  } catch (err) {
+    if (err instanceof AgentOfflineError) { res.status(400).json({ error: 'AGENT_OFFLINE' }); return; }
+    res.status(500).json({ error: 'INTERNAL_ERROR' });
+  }
+});
+
 // File manager — proxy commands to agent
 router.post('/:id/files/list', async (req, res) => {
   const computer = await prisma.computer.findFirst({

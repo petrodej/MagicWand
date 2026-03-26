@@ -22,3 +22,21 @@ async def list_processes(params: dict) -> dict:
     procs.sort(key=lambda p: p.get(key, 0), reverse=reverse)
 
     return {"processes": procs[:top_n], "total_count": len(procs)}
+
+
+async def kill_process(params: dict) -> dict:
+    pid = params.get("pid")
+    if not pid:
+        return {"error": "pid is required"}
+
+    try:
+        p = psutil.Process(pid)
+        name = p.name()
+        p.kill()
+        return {"success": True, "message": f"Killed process {name} (PID {pid})"}
+    except psutil.NoSuchProcess:
+        return {"error": f"Process {pid} not found"}
+    except psutil.AccessDenied:
+        return {"error": f"Access denied killing process {pid}"}
+    except Exception as e:
+        return {"error": str(e)}
