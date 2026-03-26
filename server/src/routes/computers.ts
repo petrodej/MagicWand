@@ -126,6 +126,26 @@ router.get('/:id/system-info', async (req, res) => {
   }
 });
 
+// Execute command on agent (for terminal)
+router.post('/:id/execute', async (req, res) => {
+  const computer = await prisma.computer.findFirst({
+    where: { id: req.params.id, userId: req.userId },
+  });
+  if (!computer) { res.status(404).json({ error: 'NOT_FOUND' }); return; }
+
+  try {
+    const result = await executeAgentCommand(computer.id, 'execute_command', {
+      command: req.body.command,
+      shell: req.body.shell || 'powershell',
+      timeout: Math.min(req.body.timeout || 30, 120),
+    });
+    res.json(result);
+  } catch (err) {
+    if (err instanceof AgentOfflineError) { res.status(400).json({ error: 'AGENT_OFFLINE', message: 'Computer is offline.' }); return; }
+    res.status(500).json({ error: 'INTERNAL_ERROR', message: 'Command execution failed.' });
+  }
+});
+
 // File manager — proxy commands to agent
 router.post('/:id/files/list', async (req, res) => {
   const computer = await prisma.computer.findFirst({
