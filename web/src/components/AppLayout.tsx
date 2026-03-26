@@ -1,5 +1,6 @@
 import { Sidebar } from './Sidebar';
 import { SearchPalette } from './SearchPalette';
+import { ToastContainer } from './ToastContainer';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -11,6 +12,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       <Sidebar />
       <main className="ml-60 flex-1 min-h-screen">{children}</main>
       <SearchPalette />
+      <ToastContainer />
     </div>
   );
 }

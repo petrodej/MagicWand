@@ -7,6 +7,7 @@ import { AddComputerModal } from '../components/AddComputerModal';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { useNavigate } from 'react-router-dom';
 import { api, getWsBase } from '../lib/api';
+import { useToastStore } from '../components/ToastContainer';
 
 interface CommandResult {
   computerId: string;
@@ -29,6 +30,7 @@ function formatUptime(seconds: number): string {
 export function Dashboard() {
   const { computers, loading, fetchComputers, updateStatus, updateHeartbeat } = useComputerStore();
   const navigate = useNavigate();
+  const addToast = useToastStore((s) => s.addToast);
   const [showAddModal, setShowAddModal] = useState(false);
   const [wsToken, setWsToken] = useState<string | null>(null);
 
@@ -60,6 +62,11 @@ export function Dashboard() {
     onMessage: (data) => {
       if (data.type === 'status') {
         updateStatus(data.computerId, data.isOnline);
+        const name = computers.find((c) => c.id === data.computerId)?.hostname || 'Computer';
+        addToast({
+          type: data.isOnline ? 'success' : 'error',
+          title: `${name} ${data.isOnline ? 'connected' : 'disconnected'}`,
+        });
       } else if (data.type === 'heartbeat') {
         updateHeartbeat(data.computerId, {
           cpuPercent: data.cpuPercent,
@@ -412,7 +419,9 @@ export function Dashboard() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          api.post(`/api/computers/${c.id}/wake`, {}).catch(() => {});
+                          api.post(`/api/computers/${c.id}/wake`, {})
+                            .then(() => addToast({ type: 'info', title: 'Wake-on-LAN sent', message: c.hostname || c.name }))
+                            .catch(() => addToast({ type: 'error', title: 'WOL failed', message: c.hostname || c.name }));
                         }}
                         className="text-gray-700 hover:text-amber-400 transition-colors"
                         title="Wake on LAN"
