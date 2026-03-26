@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import crypto from 'crypto';
+import dgram from 'dgram';
 import { prisma } from '../db.js';
 import { requireAuth } from '../middleware/auth.js';
 import { executeAgentCommand, AgentOfflineError } from '../services/agentBridge.js';
@@ -16,7 +17,7 @@ router.get('/', async (req, res) => {
     select: {
       id: true, name: true, hostname: true, os: true,
       cpuModel: true, ramTotalMb: true, isOnline: true,
-      lastSeen: true, ipAddress: true, agentVersion: true,
+      lastSeen: true, ipAddress: true, macAddress: true, agentVersion: true,
       tags: true, createdAt: true, updatedAt: true,
     },
     orderBy: { createdAt: 'desc' },
@@ -59,7 +60,7 @@ router.get('/:id', async (req, res) => {
     select: {
       id: true, name: true, hostname: true, os: true,
       cpuModel: true, ramTotalMb: true, isOnline: true,
-      lastSeen: true, ipAddress: true, agentVersion: true,
+      lastSeen: true, ipAddress: true, macAddress: true, agentVersion: true,
       tags: true, createdAt: true, updatedAt: true,
     },
   });
@@ -125,6 +126,38 @@ router.delete('/:id', async (req, res) => {
   }
   logAudit({ userId: req.userId!, action: 'computer_delete', computerId: req.params.id, ipAddress: req.ip });
   res.json({ success: true });
+});
+
+// Wake-on-LAN
+router.post('/:id/wake', async (req, res) => {
+  const computer = await prisma.computer.findFirst({
+    where: { id: req.params.id, userId: req.userId },
+  });
+  if (!computer) { res.status(404).json({ error: 'NOT_FOUND' }); return; }
+  if (!computer.macAddress) {
+    res.status(400).json({ error: 'NO_MAC', message: 'No MAC address stored for this computer. Re-enroll the agent to capture it.' });
+    return;
+  }
+
+  // Build magic packet: 6 bytes of 0xFF followed by MAC address repeated 16 times
+  const macBytes = Buffer.from(computer.macAddress.replace(/[:-]/g, ''), 'hex');
+  const magicPacket = Buffer.alloc(102);
+  magicPacket.fill(0xFF, 0, 6);
+  for (let i = 0; i < 16; i++) {
+    macBytes.copy(magicPacket, 6 + i * 6);
+  }
+
+  // Send UDP broadcast on port 9
+  const socket = dgram.createSocket('udp4');
+  socket.once('listening', () => {
+    socket.setBroadcast(true);
+    socket.send(magicPacket, 0, magicPacket.length, 9, '255.255.255.255', () => {
+      socket.close();
+      logAudit({ userId: req.userId!, action: 'wake_on_lan', computerId: computer.id, details: { mac: computer.macAddress }, ipAddress: req.ip });
+      res.json({ success: true, message: `Magic packet sent to ${computer.macAddress}` });
+    });
+  });
+  socket.bind();
 });
 
 // Get live system info from agent

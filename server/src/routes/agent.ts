@@ -14,6 +14,7 @@ const enrollSchema = z.object({
   cpuModel: z.string().optional(),
   ramTotalMb: z.number().optional(),
   agentVersion: z.string().optional(),
+  macAddress: z.string().optional(),
 });
 
 router.post('/enroll', async (req, res) => {
@@ -23,7 +24,7 @@ router.post('/enroll', async (req, res) => {
     return;
   }
 
-  const { token, hostname, os, cpuModel, ramTotalMb, agentVersion } = parsed.data;
+  const { token, hostname, os, cpuModel, ramTotalMb, agentVersion, macAddress } = parsed.data;
 
   // Find computer with this enrollment token
   const computer = await prisma.computer.findUnique({
@@ -50,6 +51,7 @@ router.post('/enroll', async (req, res) => {
       cpuModel: cpuModel || null,
       ramTotalMb: ramTotalMb || null,
       agentVersion: agentVersion || null,
+      macAddress: macAddress || null,
       enrollToken: null,
       enrollExpiry: null,
       ipAddress: req.ip || null,

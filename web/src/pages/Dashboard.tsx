@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Monitor, Play, X, Loader2, Filter, Wifi, Bell, ScrollText, Clock } from 'lucide-react';
+import { Plus, Monitor, Play, X, Loader2, Filter, Wifi, Bell, ScrollText, Clock, Power } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useComputerStore } from '../stores/computerStore';
@@ -312,6 +312,7 @@ export function Dashboard() {
                 <th className="text-left px-4 py-3 font-medium">Version</th>
                 <th className="text-left px-4 py-3 font-medium">Tags</th>
                 <th className="text-left px-4 py-3 font-medium">Last Seen</th>
+                <th className="w-12" />
               </tr>
             </thead>
             <tbody>
@@ -405,6 +406,20 @@ export function Dashboard() {
                   </td>
                   <td className="px-4 py-3 text-xs text-gray-600 whitespace-nowrap">
                     {c.lastSeen ? new Date(c.lastSeen).toLocaleString() : '—'}
+                  </td>
+                  <td className="px-4 py-2">
+                    {!c.isOnline && c.macAddress && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          api.post(`/api/computers/${c.id}/wake`, {}).catch(() => {});
+                        }}
+                        className="text-gray-700 hover:text-amber-400 transition-colors"
+                        title="Wake on LAN"
+                      >
+                        <Power className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}

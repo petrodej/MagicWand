@@ -35,6 +35,7 @@ model Computer {
   isOnline      Boolean       @default(false)
   lastSeen      DateTime?
   ipAddress     String?
+  macAddress    String?
   agentVersion  String?
   tags          String        @default("")
   createdAt     DateTime      @default(now())

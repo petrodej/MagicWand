@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { Trash2, Tag } from 'lucide-react';
+import { Trash2, Tag, Power } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { api } from '../lib/api';
 import type { Computer } from '../stores/computerStore';
@@ -66,6 +66,24 @@ export function ComputerView() {
               </span>
             )) : 'Add tags'}
           </button>
+          {!computer.isOnline && computer.macAddress && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={async () => {
+                try {
+                  await api.post(`/api/computers/${computer.id}/wake`, {});
+                  alert('Wake-on-LAN packet sent!');
+                } catch {
+                  alert('Failed to send WOL packet.');
+                }
+              }}
+              className="text-gray-600 hover:text-amber-400"
+              title="Wake on LAN"
+            >
+              <Power className="w-4 h-4" />
+            </Button>
+          )}
           <Button variant="ghost" size="sm" onClick={handleDelete} className="text-gray-600 hover:text-red-400">
             <Trash2 className="w-4 h-4" />
           </Button>

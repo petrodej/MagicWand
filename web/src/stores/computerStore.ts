@@ -11,6 +11,7 @@ export interface Computer {
   isOnline: boolean;
   lastSeen: string | null;
   ipAddress: string | null;
+  macAddress: string | null;
   agentVersion: string | null;
   tags?: string;
   // Live heartbeat data (from WebSocket, not DB)

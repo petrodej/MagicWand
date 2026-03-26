@@ -91,6 +91,13 @@ def check_for_updates(server_url: str) -> bool:
 
     return False
 
+def get_mac_address() -> str:
+    """Get the MAC address of the primary network interface."""
+    import uuid
+    mac = uuid.getnode()
+    return ':'.join(f'{(mac >> i) & 0xFF:02x}' for i in range(40, -1, -8))
+
+
 def get_system_metadata() -> dict:
     uname = platform.uname()
     mem = psutil.virtual_memory()
@@ -100,6 +107,7 @@ def get_system_metadata() -> dict:
         "cpuModel": platform.processor() or "Unknown",
         "ramTotalMb": round(mem.total / (1024 * 1024)),
         "agentVersion": AGENT_VERSION,
+        "macAddress": get_mac_address(),
     }
 
 def enroll(token: str, server_url: str) -> None:
