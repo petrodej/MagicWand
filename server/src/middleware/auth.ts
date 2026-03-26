@@ -1,10 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 import { validateSession } from '../services/auth.js';
+import { prisma } from '../db.js';
 
 declare global {
   namespace Express {
     interface Request {
       userId?: string;
+      userRole?: string;
     }
   }
 }
@@ -24,5 +26,18 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
   }
 
   req.userId = userId;
+
+  // Load role
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
+  req.userRole = user?.role || 'viewer';
+
+  next();
+}
+
+export function requireAdmin(req: Request, res: Response, next: NextFunction): void {
+  if (req.userRole !== 'admin') {
+    res.status(403).json({ error: 'FORBIDDEN', message: 'Admin access required.' });
+    return;
+  }
   next();
 }

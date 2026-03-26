@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Monitor, Bell, ScrollText, Clock, PanelLeftClose, PanelLeft, LogOut } from 'lucide-react';
+import { Monitor, Bell, ScrollText, Clock, Users, PanelLeftClose, PanelLeft, LogOut } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const logout = useAuthStore((s) => s.logout);
+  const { logout, role } = useAuthStore();
 
   const isDashboardActive =
     location.pathname.startsWith('/dashboard') ||
@@ -15,6 +15,7 @@ export function Sidebar() {
   const isAlertsActive = location.pathname.startsWith('/alerts');
   const isAuditActive = location.pathname.startsWith('/audit');
   const isScheduledActive = location.pathname.startsWith('/scheduled');
+  const isSettingsActive = location.pathname.startsWith('/settings');
 
   const handleLogout = async () => {
     await logout();
@@ -100,6 +101,23 @@ export function Sidebar() {
           <Clock size={16} className="shrink-0" />
           {!collapsed && <span>Scheduled</span>}
         </button>
+
+        {role === 'admin' && (
+          <button
+            onClick={() => navigate('/settings')}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors relative ${
+              isSettingsActive
+                ? 'bg-gray-800/50 text-gray-100'
+                : 'text-gray-500 hover:text-gray-300'
+            }`}
+          >
+            {isSettingsActive && (
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 bg-teal-500 rounded-full" />
+            )}
+            <Users size={16} className="shrink-0" />
+            {!collapsed && <span>Users</span>}
+          </button>
+        )}
       </nav>
 
       {/* Bottom controls */}

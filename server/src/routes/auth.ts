@@ -42,7 +42,7 @@ router.post('/logout', requireAuth, async (req, res) => {
 });
 
 router.get('/me', requireAuth, async (req, res) => {
-  res.json({ userId: req.userId });
+  res.json({ userId: req.userId, role: req.userRole });
 });
 
 // Short-lived WS token (avoids leaking httpOnly cookie to JS)

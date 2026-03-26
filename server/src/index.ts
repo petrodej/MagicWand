@@ -21,6 +21,7 @@ import alertRoutes from './routes/alerts.js';
 import auditRoutes from './routes/audit.js';
 import scheduledTaskRoutes from './routes/scheduledTasks.js';
 import dashboardRoutes from './routes/dashboard.js';
+import userRoutes from './routes/users.js';
 import { startAlertMonitor } from './services/alertMonitor.js';
 import { startScheduler } from './services/scheduler.js';
 
@@ -44,6 +45,7 @@ app.use('/api/alerts', alertRoutes);
 app.use('/api/audit', auditRoutes);
 app.use('/api/scheduled-tasks', scheduledTaskRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/users', userRoutes);
 
 // Serve frontend static files
 const webDist = path.resolve(process.cwd(), '../web/dist');
