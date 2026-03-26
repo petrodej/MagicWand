@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Monitor, Play, X, Loader2, Filter } from 'lucide-react';
+import { Plus, Monitor, Play, X, Loader2, Filter, Wifi, Bell, ScrollText, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useComputerStore } from '../stores/computerStore';
@@ -31,10 +31,15 @@ export function Dashboard() {
   const [running, setRunning] = useState(false);
   const [results, setResults] = useState<CommandResult[]>([]);
   const [filterTag, setFilterTag] = useState<string | null>(null);
+  const [stats, setStats] = useState<{
+    totalComputers: number; onlineComputers: number;
+    recentAlerts: number; recentAuditCount: number; scheduledTaskCount: number;
+  } | null>(null);
 
   useEffect(() => {
     fetchComputers();
     api.get<{ token: string }>('/api/auth/ws-token').then((d) => setWsToken(d.token));
+    api.get<typeof stats>('/api/dashboard/stats').then(setStats);
   }, [fetchComputers]);
 
   const wsUrl = wsToken
@@ -151,6 +156,49 @@ export function Dashboard() {
           )}
         </div>
       </div>
+
+      {/* Stats widgets */}
+      {stats && (
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+          <button onClick={() => {}} className="bg-gray-900 border border-gray-800/50 rounded-xl p-4 text-left hover:border-gray-700/50 transition-colors">
+            <div className="flex items-center gap-2 mb-2">
+              <Monitor className="w-4 h-4 text-gray-600" />
+              <span className="text-xs text-gray-500">Total</span>
+            </div>
+            <span className="text-2xl font-semibold text-gray-100">{stats.totalComputers}</span>
+          </button>
+          <button onClick={() => {}} className="bg-gray-900 border border-gray-800/50 rounded-xl p-4 text-left hover:border-gray-700/50 transition-colors">
+            <div className="flex items-center gap-2 mb-2">
+              <Wifi className="w-4 h-4 text-emerald-500" />
+              <span className="text-xs text-gray-500">Online</span>
+            </div>
+            <span className="text-2xl font-semibold text-emerald-400">{stats.onlineComputers}</span>
+          </button>
+          <button onClick={() => navigate('/alerts')} className="bg-gray-900 border border-gray-800/50 rounded-xl p-4 text-left hover:border-gray-700/50 transition-colors">
+            <div className="flex items-center gap-2 mb-2">
+              <Bell className="w-4 h-4 text-amber-500" />
+              <span className="text-xs text-gray-500">Alerts (24h)</span>
+            </div>
+            <span className={`text-2xl font-semibold ${stats.recentAlerts > 0 ? 'text-amber-400' : 'text-gray-100'}`}>
+              {stats.recentAlerts}
+            </span>
+          </button>
+          <button onClick={() => navigate('/audit')} className="bg-gray-900 border border-gray-800/50 rounded-xl p-4 text-left hover:border-gray-700/50 transition-colors">
+            <div className="flex items-center gap-2 mb-2">
+              <ScrollText className="w-4 h-4 text-blue-500" />
+              <span className="text-xs text-gray-500">Events (24h)</span>
+            </div>
+            <span className="text-2xl font-semibold text-gray-100">{stats.recentAuditCount}</span>
+          </button>
+          <button onClick={() => navigate('/scheduled')} className="bg-gray-900 border border-gray-800/50 rounded-xl p-4 text-left hover:border-gray-700/50 transition-colors">
+            <div className="flex items-center gap-2 mb-2">
+              <Clock className="w-4 h-4 text-purple-500" />
+              <span className="text-xs text-gray-500">Scheduled</span>
+            </div>
+            <span className="text-2xl font-semibold text-gray-100">{stats.scheduledTaskCount}</span>
+          </button>
+        </div>
+      )}
 
       {/* Batch command bar */}
       {selectMode && selected.size > 0 && (
