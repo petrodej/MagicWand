@@ -75,6 +75,13 @@ async def handle_command(command: str, params: dict) -> dict:
         "network_diagnostics": network_diagnostics,
     }
 
+    # Import input_control separately so a failure doesn't break other commands
+    try:
+        from commands.input_control import input_control
+        handlers["input_control"] = input_control
+    except Exception:
+        pass
+
     handler = handlers.get(command)
     if not handler:
         return {"error": f"Unknown command: {command}"}

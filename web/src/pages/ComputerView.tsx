@@ -6,6 +6,7 @@ import { api } from '../lib/api';
 import type { Computer } from '../stores/computerStore';
 import { SystemInfoPanel } from '../components/SystemInfoPanel';
 import { AIChat } from '../components/AIChat';
+import { RemoteDesktop } from '../components/RemoteDesktop';
 
 export function ComputerView() {
   const { id } = useParams<{ id: string }>();
@@ -49,7 +50,7 @@ export function ComputerView() {
 
       {/* Underline tabs */}
       <div className="flex gap-6 border-b border-gray-800/50 mb-6">
-        {(['overview', 'chat'] as const).map((tab) => (
+        {(['overview', 'remote', 'chat'] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -59,7 +60,7 @@ export function ComputerView() {
                 : 'text-gray-500 border-transparent hover:text-gray-300'
             }`}
           >
-            {tab === 'overview' ? 'Overview' : 'AI Assistant'}
+            {tab === 'overview' ? 'Overview' : tab === 'remote' ? 'Remote' : 'AI Assistant'}
           </button>
         ))}
       </div>
@@ -73,6 +74,17 @@ export function ComputerView() {
             Computer is offline. System info unavailable.
           </div>
         )
+      ) : activeTab === 'remote' ? (
+        <div className="flex gap-4 h-[calc(100vh-180px)]">
+          {/* Remote desktop — takes most of the space */}
+          <div className="flex-1 min-w-0">
+            <RemoteDesktop computerId={computer.id} isOnline={computer.isOnline} />
+          </div>
+          {/* AI Assistant sidebar */}
+          <div className="w-[380px] shrink-0 border-l border-gray-800/50 pl-4">
+            <AIChat computerId={computer.id} isOnline={computer.isOnline} />
+          </div>
+        </div>
       ) : (
         <AIChat computerId={computer.id} isOnline={computer.isOnline} />
       )}

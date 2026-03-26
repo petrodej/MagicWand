@@ -125,7 +125,7 @@ export function AIChat({ computerId, isOnline }: Props) {
   ];
 
   return (
-    <div className="flex flex-col h-[calc(100vh-140px)]">
+    <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto p-4">
         {messages.filter((m) => m.role !== 'tool_result').map((msg) => (
           <ChatMessage

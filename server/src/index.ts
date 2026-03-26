@@ -16,6 +16,7 @@ import chatRoutes from './routes/chat.js';
 import downloadRoutes from './routes/download.js';
 import { setupAgentWebSocket, addDashboardClient } from './ws/agentHandler.js';
 import { addChatClient } from './ws/chatHandler.js';
+import { setupRemoteHandler } from './ws/remoteHandler.js';
 
 export const logger = pino({ transport: { target: 'pino-pretty' } });
 
@@ -46,6 +47,7 @@ const server = createServer(app);
 const agentWss = new WebSocketServer({ noServer: true });
 const dashboardWss = new WebSocketServer({ noServer: true });
 const chatWss = new WebSocketServer({ noServer: true });
+const remoteWss = new WebSocketServer({ noServer: true });
 
 setupAgentWebSocket(agentWss);
 
@@ -85,6 +87,19 @@ server.on('upgrade', async (request, socket, head) => {
     }
     chatWss.handleUpgrade(request, socket, head, (ws) => {
       addChatClient(chatMatch[1], ws);
+    });
+    return;
+  }
+
+  const remoteMatch = pathname.match(/^\/ws\/remote\/([a-f0-9-]+)$/);
+  if (remoteMatch) {
+    const token = url.searchParams.get('token');
+    if (!token || !validateWsToken(token)) {
+      socket.destroy();
+      return;
+    }
+    remoteWss.handleUpgrade(request, socket, head, (ws) => {
+      setupRemoteHandler(ws, remoteMatch[1]);
     });
     return;
   }

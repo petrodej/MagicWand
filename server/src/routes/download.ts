@@ -84,7 +84,7 @@ foreach ($file in $agentFiles) {
 
 # Download commands
 New-Item -ItemType Directory -Force -Path "$agentDir\\commands" | Out-Null
-$cmdFiles = @("__init__.py", "execute.py", "screenshot.py", "system_info.py", "processes.py", "event_logs.py", "services.py", "software.py", "files.py", "network.py")
+$cmdFiles = @("__init__.py", "execute.py", "screenshot.py", "system_info.py", "processes.py", "event_logs.py", "services.py", "software.py", "files.py", "network.py", "input_control.py")
 foreach ($file in $cmdFiles) {
     Invoke-WebRequest -Uri "$serverUrl/api/download/agent/commands/$file" -OutFile "$agentDir\\commands\\$file" -UseBasicParsing
 }

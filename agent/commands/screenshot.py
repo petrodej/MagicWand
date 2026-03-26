@@ -5,6 +5,8 @@ from PIL import Image
 
 async def screenshot(params: dict) -> dict:
     monitor_index = params.get("monitor", 0)
+    quality = params.get("quality", 75)
+    max_width = params.get("max_width", 1920)
 
     with mss.mss() as sct:
         monitors = sct.monitors
@@ -16,14 +18,13 @@ async def screenshot(params: dict) -> dict:
 
         pil_img = Image.frombytes("RGB", img.size, img.bgra, "raw", "BGRX")
 
-        max_width = 1920
         if pil_img.width > max_width:
             ratio = max_width / pil_img.width
             new_size = (max_width, int(pil_img.height * ratio))
             pil_img = pil_img.resize(new_size, Image.LANCZOS)
 
         buf = io.BytesIO()
-        pil_img.save(buf, format="JPEG", quality=75)
+        pil_img.save(buf, format="JPEG", quality=quality)
         b64 = base64.b64encode(buf.getvalue()).decode("ascii")
 
         return {
