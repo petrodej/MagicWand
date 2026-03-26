@@ -19,6 +19,7 @@ model User {
   alertLogs     AlertLog[]
   auditLogs     AuditLog[]
   scheduledTasks ScheduledTask[]
+  scripts       Script[]
 }
 
 model Computer {
@@ -81,6 +82,18 @@ model AlertLog {
   message       String
   resolved      Boolean  @default(false)
   createdAt     DateTime @default(now())
+}
+
+model Script {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String
+  description   String   @default("")
+  command       String
+  shell         String   @default("powershell")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model ScheduledTask {

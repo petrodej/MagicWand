@@ -9,6 +9,7 @@ import { Alerts } from './pages/Alerts';
 import { AuditLog } from './pages/AuditLog';
 import { ScheduledTasks } from './pages/ScheduledTasks';
 import { Settings } from './pages/Settings';
+import { Scripts } from './pages/Scripts';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuthStore();
@@ -34,6 +35,7 @@ export default function App() {
         <Route path="/audit" element={<ProtectedRoute><AuditLog /></ProtectedRoute>} />
         <Route path="/scheduled" element={<ProtectedRoute><ScheduledTasks /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+        <Route path="/scripts" element={<ProtectedRoute><Scripts /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/dashboard" />} />
       </Routes>
     </BrowserRouter>
