@@ -19,7 +19,9 @@ import { addChatClient } from './ws/chatHandler.js';
 import { setupRemoteHandler } from './ws/remoteHandler.js';
 import alertRoutes from './routes/alerts.js';
 import auditRoutes from './routes/audit.js';
+import scheduledTaskRoutes from './routes/scheduledTasks.js';
 import { startAlertMonitor } from './services/alertMonitor.js';
+import { startScheduler } from './services/scheduler.js';
 
 export const logger = pino({ transport: { target: 'pino-pretty' } });
 
@@ -39,6 +41,7 @@ app.use('/api/agent', agentRoutes);
 app.use('/api/download', downloadRoutes);
 app.use('/api/alerts', alertRoutes);
 app.use('/api/audit', auditRoutes);
+app.use('/api/scheduled-tasks', scheduledTaskRoutes);
 
 // Serve frontend static files
 const webDist = path.resolve(process.cwd(), '../web/dist');
@@ -115,6 +118,7 @@ server.on('upgrade', async (request, socket, head) => {
 async function start() {
   await seedAdminUser();
   startAlertMonitor();
+  startScheduler();
   server.listen(config.PORT, () => {
     logger.info(`MagicWand server running on port ${config.PORT}`);
   });

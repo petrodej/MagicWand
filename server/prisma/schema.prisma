@@ -17,6 +17,7 @@ model User {
   alertRules    AlertRule[]
   alertLogs     AlertLog[]
   auditLogs     AuditLog[]
+  scheduledTasks ScheduledTask[]
 }
 
 model Computer {
@@ -42,6 +43,7 @@ model Computer {
   alertRules    AlertRule[]
   alertLogs     AlertLog[]
   auditLogs     AuditLog[]
+  scheduledTasks ScheduledTask[]
 }
 
 model ChatMessage {
@@ -76,6 +78,23 @@ model AlertLog {
   type          String
   message       String
   resolved      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+}
+
+model ScheduledTask {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  computerId    String
+  computer      Computer @relation(fields: [computerId], references: [id], onDelete: Cascade)
+  name          String
+  command       String
+  shell         String   @default("powershell")
+  cronExpr      String   // cron expression e.g. "0 */6 * * *"
+  enabled       Boolean  @default(true)
+  lastRun       DateTime?
+  lastResult    String?  // JSON: {stdout, stderr, exitCode}
+  nextRun       DateTime?
   createdAt     DateTime @default(now())
 }
 
