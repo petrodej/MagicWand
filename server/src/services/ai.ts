@@ -6,7 +6,7 @@ import { logger } from '../index.js';
 
 const anthropic = new Anthropic({ apiKey: config.ANTHROPIC_API_KEY });
 
-const activeLoops = new Map<string, { cancel: boolean }>();
+const activeLoops = new Map<string, { cancel: boolean; abortController?: AbortController }>();
 
 export function isAIBusy(computerId: string): boolean {
   return activeLoops.has(computerId);
@@ -16,6 +16,7 @@ export function cancelAILoop(computerId: string): boolean {
   const loop = activeLoops.get(computerId);
   if (loop) {
     loop.cancel = true;
+    loop.abortController?.abort();
     return true;
   }
   return false;
@@ -173,7 +174,7 @@ export async function runAIChat(
     return;
   }
 
-  const loopState = { cancel: false };
+  const loopState: { cancel: boolean; abortController?: AbortController } = { cancel: false };
   activeLoops.set(computerId, loopState);
 
   try {
@@ -206,6 +207,19 @@ export async function runAIChat(
           messages.push({ role: 'user', content: msg.content });
         }
       }
+    }
+
+    // Sanitize: remove trailing assistant messages with tool_use that lack tool_result
+    while (messages.length > 0) {
+      const last = messages[messages.length - 1];
+      if (last.role === 'assistant' && Array.isArray(last.content)) {
+        const hasToolUse = last.content.some((b: any) => b.type === 'tool_use');
+        if (hasToolUse) {
+          messages.pop();
+          continue;
+        }
+      }
+      break;
     }
 
     // Context window management
@@ -252,13 +266,23 @@ export async function runAIChat(
         return;
       }
 
-      const response = await anthropic.messages.create({
+      const abortController = new AbortController();
+      loopState.abortController = abortController;
+
+      const stream = anthropic.messages.stream({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 4096,
         system: buildSystemPrompt(computer),
         tools,
         messages,
+      }, { signal: abortController.signal });
+
+      // Stream text tokens in real-time
+      stream.on('text', (text) => {
+        onStream({ type: 'text', data: text });
       });
+
+      const response = await stream.finalMessage();
 
       await prisma.chatMessage.create({
         data: {
@@ -268,10 +292,9 @@ export async function runAIChat(
         },
       });
 
+      // Emit tool calls after response completes
       for (const block of response.content) {
-        if (block.type === 'text') {
-          onStream({ type: 'text', data: block.text });
-        } else if (block.type === 'tool_use') {
+        if (block.type === 'tool_use') {
           onStream({
             type: 'tool_call',
             data: { id: block.id, name: block.name, input: block.input },

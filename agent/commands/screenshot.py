@@ -21,10 +21,10 @@ async def screenshot(params: dict) -> dict:
         if pil_img.width > max_width:
             ratio = max_width / pil_img.width
             new_size = (max_width, int(pil_img.height * ratio))
-            pil_img = pil_img.resize(new_size, Image.LANCZOS)
+            pil_img = pil_img.resize(new_size, Image.BILINEAR)
 
         buf = io.BytesIO()
-        pil_img.save(buf, format="JPEG", quality=quality)
+        pil_img.save(buf, format="JPEG", quality=quality, optimize=False)
         b64 = base64.b64encode(buf.getvalue()).decode("ascii")
 
         return {

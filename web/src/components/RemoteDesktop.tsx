@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button';
 import { api, getWsBase } from '../lib/api';
 
 const QUALITY_PRESETS = [
-  { label: 'Low', quality: 25, maxWidth: 960, fps: 3, desc: 'Saves bandwidth' },
-  { label: 'Medium', quality: 50, maxWidth: 1280, fps: 4, desc: 'Balanced' },
+  { label: 'Low', quality: 25, maxWidth: 960, fps: 15, desc: 'Fast, low res' },
+  { label: 'Medium', quality: 50, maxWidth: 1280, fps: 10, desc: 'Balanced' },
   { label: 'High', quality: 75, maxWidth: 1600, fps: 6, desc: 'Sharper image' },
-  { label: 'Ultra', quality: 90, maxWidth: 1920, fps: 8, desc: 'Best quality' },
+  { label: 'Ultra', quality: 90, maxWidth: 1920, fps: 4, desc: 'Best quality' },
 ];
 
 interface Props {

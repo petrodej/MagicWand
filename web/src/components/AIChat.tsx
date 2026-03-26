@@ -46,7 +46,13 @@ export function AIChat({ computerId, isOnline }: Props) {
   const handleWsMessage = useCallback((event: any) => {
     switch (event.type) {
       case 'text':
-        setStreamingContent((prev) => [...prev, { type: 'text', text: event.data }]);
+        setStreamingContent((prev) => {
+          const last = prev[prev.length - 1];
+          if (last && last.type === 'text') {
+            return [...prev.slice(0, -1), { type: 'text', text: last.text + event.data }];
+          }
+          return [...prev, { type: 'text', text: event.data }];
+        });
         break;
 
       case 'tool_call':
