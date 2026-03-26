@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Send, Loader2, X, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -116,12 +117,19 @@ export function AIChat({ computerId, isOnline }: Props) {
 
   const clearChat = async () => {
     await api.del(`/api/computers/${computerId}/chat`);
+    setBusy(false);
     setMessages([]);
     setStreamingContent([]);
+    setToolResults(new Map());
+    setPendingTools(new Set());
   };
 
   const cancelAI = async () => {
     await api.del(`/api/computers/${computerId}/chat/active`);
+    setBusy(false);
+    setStreamingContent([]);
+    setToolResults(new Map());
+    setPendingTools(new Set());
   };
 
   const quickActions = [
@@ -148,7 +156,7 @@ export function AIChat({ computerId, isOnline }: Props) {
                 if (block.type === 'text') {
                   return (
                     <div key={i} className="text-sm prose prose-invert prose-sm max-w-none">
-                      <ReactMarkdown>{block.text}</ReactMarkdown>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{block.text}</ReactMarkdown>
                     </div>
                   );
                 }

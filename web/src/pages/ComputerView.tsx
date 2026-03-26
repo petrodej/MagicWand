@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { Trash2, Tag, Power } from 'lucide-react';
+import { Trash2, Tag, Power, GripVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { api } from '../lib/api';
 import type { Computer } from '../stores/computerStore';
@@ -18,6 +18,34 @@ export function ComputerView() {
   const [searchParams] = useSearchParams();
   const [computer, setComputer] = useState<Computer | null>(null);
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview');
+  const [chatWidth, setChatWidth] = useState(380);
+  const dragging = useRef(false);
+  const dragStartX = useRef(0);
+  const dragStartWidth = useRef(0);
+
+  const onDragStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    dragging.current = true;
+    dragStartX.current = e.clientX;
+    dragStartWidth.current = chatWidth;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+
+    const onMove = (ev: MouseEvent) => {
+      if (!dragging.current) return;
+      const delta = dragStartX.current - ev.clientX;
+      setChatWidth(Math.max(280, Math.min(800, dragStartWidth.current + delta)));
+    };
+    const onUp = () => {
+      dragging.current = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  }, [chatWidth]);
 
   useEffect(() => {
     if (id) {
@@ -128,13 +156,20 @@ export function ComputerView() {
       ) : activeTab === 'files' ? (
         <FileManager computerId={computer.id} isOnline={computer.isOnline} />
       ) : activeTab === 'remote' ? (
-        <div className="flex gap-4 h-[calc(100vh-180px)]">
+        <div className="flex h-[calc(100vh-180px)]">
           {/* Remote desktop — takes most of the space */}
           <div className="flex-1 min-w-0">
             <RemoteDesktop computerId={computer.id} isOnline={computer.isOnline} />
           </div>
-          {/* AI Assistant sidebar */}
-          <div className="w-[380px] shrink-0 border-l border-gray-800/50 pl-4">
+          {/* Drag handle */}
+          <div
+            onMouseDown={onDragStart}
+            className="w-2 shrink-0 cursor-col-resize flex items-center justify-center hover:bg-gray-800/50 transition-colors group"
+          >
+            <GripVertical className="w-3 h-3 text-gray-700 group-hover:text-gray-500" />
+          </div>
+          {/* AI Assistant sidebar — resizable */}
+          <div style={{ width: chatWidth }} className="shrink-0 border-l border-gray-800/50 pl-3">
             <AIChat computerId={computer.id} isOnline={computer.isOnline} />
           </div>
         </div>

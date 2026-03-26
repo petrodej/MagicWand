@@ -269,8 +269,11 @@ export async function runAIChat(
       const abortController = new AbortController();
       loopState.abortController = abortController;
 
+      const llmStart = Date.now();
+      logger.info(`[AI loop=${iterations}] Calling Claude API (${messages.length} messages, ~${Math.round(JSON.stringify(messages).length / 1024)}KB context)`);
+
       const stream = anthropic.messages.stream({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-6',
         max_tokens: 4096,
         system: buildSystemPrompt(computer),
         tools,
@@ -283,7 +286,9 @@ export async function runAIChat(
       });
 
       const response = await stream.finalMessage();
+      logger.info(`[AI loop=${iterations}] Claude responded in ${Date.now() - llmStart}ms (${response.usage?.input_tokens} in / ${response.usage?.output_tokens} out)`);
 
+      const dbStart = Date.now();
       await prisma.chatMessage.create({
         data: {
           computerId,
@@ -291,6 +296,7 @@ export async function runAIChat(
           content: JSON.stringify(response.content),
         },
       });
+      logger.info(`[AI loop=${iterations}] DB save: ${Date.now() - dbStart}ms`);
 
       // Emit tool calls after response completes
       for (const block of response.content) {
@@ -319,11 +325,22 @@ export async function runAIChat(
         }
 
         try {
+          // Force lower quality for AI screenshots to reduce latency
+          const params = toolUse.name === 'screenshot'
+            ? { ...toolUse.input as Record<string, any>, quality: 30, max_width: 1024 }
+            : toolUse.input as Record<string, any>;
+
+          const toolStart = Date.now();
           const result = await executeAgentCommand(
             computerId,
             toolUse.name,
-            toolUse.input as Record<string, any>,
+            params,
           );
+          const toolMs = Date.now() - toolStart;
+          const resultSize = toolUse.name === 'screenshot' && result.image_base64
+            ? `${Math.round(result.image_base64.length / 1024)}KB image`
+            : `${JSON.stringify(result).length} chars`;
+          logger.info(`[AI loop=${iterations}] Tool ${toolUse.name}: ${toolMs}ms (${resultSize})`);
 
           if (toolUse.name === 'screenshot' && result.image_base64) {
             toolResults.push({

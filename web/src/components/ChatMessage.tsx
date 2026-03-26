@@ -1,4 +1,5 @@
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { ToolCallDisplay } from './ToolCallDisplay';
 
 interface MessageProps {
@@ -34,7 +35,7 @@ export function ChatMessage({ role, content, toolResults, pendingTools }: Messag
           if (block.type === 'text') {
             return (
               <div key={i} className="text-sm prose prose-invert prose-sm max-w-none">
-                <ReactMarkdown>{block.text}</ReactMarkdown>
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{block.text}</ReactMarkdown>
               </div>
             );
           }
