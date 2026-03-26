@@ -3,6 +3,9 @@ import type { Computer } from '../stores/computerStore';
 interface Props {
   computer: Computer;
   onClick: () => void;
+  selectable?: boolean;
+  selected?: boolean;
+  onSelect?: (id: string) => void;
 }
 
 function ResourceBar({ value, color }: { value: number; color: string }) {
@@ -13,16 +16,27 @@ function ResourceBar({ value, color }: { value: number; color: string }) {
   );
 }
 
-export function ComputerCard({ computer, onClick }: Props) {
+export function ComputerCard({ computer, onClick, selectable, selected, onSelect }: Props) {
   return (
     <button
       onClick={onClick}
-      className={`w-full text-left bg-gray-900 border border-gray-800/50 rounded-xl p-5 transition-colors hover:border-gray-700/50 ${
-        !computer.isOnline ? 'opacity-50' : ''
-      }`}
+      className={`w-full text-left bg-gray-900 border rounded-xl p-5 transition-colors hover:border-gray-700/50 ${
+        selected ? 'border-teal-500/50 bg-teal-500/5' : 'border-gray-800/50'
+      } ${!computer.isOnline ? 'opacity-50' : ''}`}
     >
       <div className="flex items-center justify-between mb-1">
-        <span className="text-sm font-medium text-gray-100 truncate">{computer.hostname || computer.name}</span>
+        <div className="flex items-center gap-2 min-w-0">
+          {selectable && (
+            <input
+              type="checkbox"
+              checked={selected}
+              onChange={(e) => { e.stopPropagation(); onSelect?.(computer.id); }}
+              onClick={(e) => e.stopPropagation()}
+              className="accent-teal-500 shrink-0"
+            />
+          )}
+          <span className="text-sm font-medium text-gray-100 truncate">{computer.hostname || computer.name}</span>
+        </div>
         <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
           computer.isOnline ? 'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.4)]' : 'bg-gray-600'
         }`} />

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Plus, Monitor } from 'lucide-react';
+import { Plus, Monitor, Play, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useComputerStore } from '../stores/computerStore';
 import { ComputerCard } from '../components/ComputerCard';
 import { AddComputerModal } from '../components/AddComputerModal';
@@ -8,11 +9,27 @@ import { useWebSocket } from '../hooks/useWebSocket';
 import { useNavigate } from 'react-router-dom';
 import { api, getWsBase } from '../lib/api';
 
+interface CommandResult {
+  computerId: string;
+  computerName: string;
+  stdout: string;
+  stderr: string;
+  exitCode: number;
+  error?: string;
+}
+
 export function Dashboard() {
   const { computers, loading, fetchComputers, updateStatus, updateHeartbeat } = useComputerStore();
   const navigate = useNavigate();
   const [showAddModal, setShowAddModal] = useState(false);
   const [wsToken, setWsToken] = useState<string | null>(null);
+
+  // Multi-select state
+  const [selectMode, setSelectMode] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [command, setCommand] = useState('');
+  const [running, setRunning] = useState(false);
+  const [results, setResults] = useState<CommandResult[]>([]);
 
   useEffect(() => {
     fetchComputers();
@@ -39,6 +56,62 @@ export function Dashboard() {
     },
   });
 
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const selectAllOnline = () => {
+    setSelected(new Set(computers.filter((c) => c.isOnline).map((c) => c.id)));
+  };
+
+  const exitSelectMode = () => {
+    setSelectMode(false);
+    setSelected(new Set());
+    setResults([]);
+    setCommand('');
+  };
+
+  const runCommand = async () => {
+    if (!command.trim() || selected.size === 0) return;
+    setRunning(true);
+    setResults([]);
+
+    const promises = Array.from(selected).map(async (computerId) => {
+      const computer = computers.find((c) => c.id === computerId);
+      try {
+        const result = await api.post<{ stdout: string; stderr: string; exit_code: number }>(
+          `/api/computers/${computerId}/execute`,
+          { command, shell: 'powershell', timeout: 30 }
+        );
+        return {
+          computerId,
+          computerName: computer?.name || computerId,
+          stdout: result.stdout || '',
+          stderr: result.stderr || '',
+          exitCode: result.exit_code,
+        };
+      } catch (err: any) {
+        return {
+          computerId,
+          computerName: computer?.name || computerId,
+          stdout: '',
+          stderr: '',
+          exitCode: -1,
+          error: err.message || 'Failed',
+        };
+      }
+    });
+
+    const allResults = await Promise.all(promises);
+    setResults(allResults);
+    setRunning(false);
+  };
+
   return (
     <div className="p-8">
       {/* Header */}
@@ -47,13 +120,81 @@ export function Dashboard() {
           <h1 className="text-xl font-semibold text-gray-100">Computers</h1>
           <p className="text-sm text-gray-500 mt-1">{computers.length} device(s) registered</p>
         </div>
-        <Button
-          onClick={() => setShowAddModal(true)}
-          className="bg-teal-500/10 text-teal-400 border border-teal-500/20 hover:bg-teal-500/20"
-        >
-          <Plus className="w-4 h-4 mr-2" /> Add Computer
-        </Button>
+        <div className="flex items-center gap-2">
+          {!selectMode ? (
+            <>
+              <Button
+                onClick={() => setSelectMode(true)}
+                variant="ghost"
+                className="text-gray-500 hover:text-gray-300"
+                disabled={computers.filter((c) => c.isOnline).length === 0}
+              >
+                Multi-Action
+              </Button>
+              <Button
+                onClick={() => setShowAddModal(true)}
+                className="bg-teal-500/10 text-teal-400 border border-teal-500/20 hover:bg-teal-500/20"
+              >
+                <Plus className="w-4 h-4 mr-2" /> Add Computer
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button onClick={selectAllOnline} variant="ghost" className="text-gray-500 text-xs">
+                Select All Online
+              </Button>
+              <Button onClick={exitSelectMode} variant="ghost" className="text-gray-500">
+                <X className="w-4 h-4 mr-1" /> Cancel
+              </Button>
+            </>
+          )}
+        </div>
       </div>
+
+      {/* Batch command bar */}
+      {selectMode && selected.size > 0 && (
+        <div className="bg-gray-900 border border-gray-800/50 rounded-xl p-4 mb-6">
+          <p className="text-sm text-gray-400 mb-2">
+            Run command on <span className="text-teal-400 font-medium">{selected.size}</span> selected computer(s):
+          </p>
+          <div className="flex gap-2">
+            <Input
+              value={command}
+              onChange={(e) => setCommand(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && runCommand()}
+              placeholder="e.g., Get-Process | Sort-Object CPU -Desc | Select -First 5"
+              className="bg-gray-800 border-gray-700 font-mono text-sm"
+              disabled={running}
+            />
+            <Button
+              onClick={runCommand}
+              disabled={running || !command.trim()}
+              className="bg-teal-500 hover:bg-teal-400 text-gray-950 shrink-0"
+            >
+              {running ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
+            </Button>
+          </div>
+
+          {/* Results */}
+          {results.length > 0 && (
+            <div className="mt-4 space-y-2 max-h-80 overflow-y-auto">
+              {results.map((r) => (
+                <div key={r.computerId} className="bg-gray-950 border border-gray-800/50 rounded-lg p-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-medium text-gray-300">{r.computerName}</span>
+                    <span className={`text-xs ${r.exitCode === 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                      exit {r.exitCode}
+                    </span>
+                  </div>
+                  {r.error && <pre className="text-red-400 text-xs whitespace-pre-wrap">{r.error}</pre>}
+                  {r.stdout && <pre className="text-gray-400 text-xs whitespace-pre-wrap max-h-32 overflow-y-auto">{r.stdout}</pre>}
+                  {r.stderr && <pre className="text-red-400 text-xs whitespace-pre-wrap">{r.stderr}</pre>}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {loading ? (
         <div className="text-gray-500">Loading...</div>
@@ -71,7 +212,14 @@ export function Dashboard() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {computers.map((c) => (
-            <ComputerCard key={c.id} computer={c} onClick={() => navigate(`/computers/${c.id}`)} />
+            <ComputerCard
+              key={c.id}
+              computer={c}
+              onClick={() => selectMode ? toggleSelect(c.id) : navigate(`/computers/${c.id}`)}
+              selectable={selectMode}
+              selected={selected.has(c.id)}
+              onSelect={toggleSelect}
+            />
           ))}
         </div>
       )}
