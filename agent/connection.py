@@ -5,11 +5,12 @@ import websockets
 from websockets.asyncio.client import connect
 
 class AgentConnection:
-    def __init__(self, server_url: str, agent_secret: str, computer_id: str, command_handler=None):
+    def __init__(self, server_url: str, agent_secret: str, computer_id: str, command_handler=None, update_checker=None):
         self.server_url = server_url.rstrip("/")
         self.agent_secret = agent_secret
         self.computer_id = computer_id
         self.command_handler = command_handler
+        self.update_checker = update_checker  # callable(server_url) -> bool
         self.ws = None
         self._backoff = 1
         self._max_backoff = 60
@@ -34,8 +35,9 @@ class AgentConnection:
                         "computerId": self.computer_id,
                     }))
 
-                    # Start heartbeat task
+                    # Start heartbeat and update check tasks
                     heartbeat_task = asyncio.create_task(self._heartbeat_loop())
+                    update_task = asyncio.create_task(self._update_check_loop())
 
                     try:
                         async for message in ws:
@@ -44,6 +46,7 @@ class AgentConnection:
                                 asyncio.create_task(self._handle_command(data))
                     finally:
                         heartbeat_task.cancel()
+                        update_task.cancel()
 
             except Exception as e:
                 print(f"Connection lost: {e}. Reconnecting in {self._backoff}s...")
@@ -63,6 +66,18 @@ class AgentConnection:
             except Exception:
                 return
             await asyncio.sleep(30)
+
+    async def _update_check_loop(self):
+        """Check for updates every 5 minutes."""
+        while True:
+            await asyncio.sleep(300)  # 5 minutes
+            try:
+                if self.update_checker:
+                    # Run in executor since it uses blocking requests
+                    loop = asyncio.get_event_loop()
+                    await loop.run_in_executor(None, self.update_checker, self.server_url)
+            except Exception:
+                pass
 
     async def _handle_command(self, data: dict):
         request_id = data.get("id")

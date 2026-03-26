@@ -204,6 +204,7 @@ def main():
         agent_secret=config["agent_secret"],
         computer_id=config["computer_id"],
         command_handler=handle_command,
+        update_checker=check_for_updates,
     )
 
     asyncio.run(conn.connect_and_run())
