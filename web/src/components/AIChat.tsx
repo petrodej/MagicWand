@@ -178,7 +178,7 @@ export function AIChat({ computerId, isOnline }: Props) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage(input)}
-            placeholder={isOnline ? 'Ask MagicWand to fix something...' : 'Computer is offline'}
+            placeholder={isOnline ? 'Ask Pulse AI to fix something...' : 'Computer is offline'}
             disabled={!isOnline || busy}
             className="bg-gray-900 border-gray-800"
           />

@@ -49,7 +49,7 @@ router.post('/', async (req, res) => {
   res.json({
     id: computer.id,
     enrollToken,
-    enrollCommand: `magicwand-agent --enroll ${enrollToken} --server ${req.protocol}://${req.get('host')}`,
+    enrollCommand: `pulse-agent --enroll ${enrollToken} --server ${req.protocol}://${req.get('host')}`,
   });
 });
 

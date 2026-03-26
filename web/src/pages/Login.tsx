@@ -33,9 +33,9 @@ export function Login() {
           <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-3 mb-3">
               <div className="w-10 h-10 rounded-xl bg-teal-500/10 flex items-center justify-center">
-                <span className="text-teal-400 font-bold text-lg">M</span>
+                <span className="text-teal-400 font-bold text-lg">P</span>
               </div>
-              <h1 className="text-xl font-semibold text-gray-100">MagicWand</h1>
+              <h1 className="text-xl font-semibold text-gray-100">Pulse</h1>
             </div>
             <p className="text-gray-500 text-sm">Remote Management Platform</p>
           </div>

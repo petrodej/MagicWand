@@ -115,7 +115,7 @@ export function startScheduler() {
         }
       }
     } catch (err) {
-      logger.error('Scheduler error:', err);
+      logger.error(`Scheduler error: ${err}`);
     }
   }, 60000);
 }

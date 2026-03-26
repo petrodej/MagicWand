@@ -34,11 +34,11 @@ export function Sidebar() {
       {/* Logo */}
       <div className="flex items-center gap-3 px-4 py-5 shrink-0">
         <div className="flex items-center justify-center w-8 h-8 rounded-md bg-teal-500/10 shrink-0">
-          <span className="text-teal-400 font-bold text-sm">M</span>
+          <span className="text-teal-400 font-bold text-sm">P</span>
         </div>
         {!collapsed && (
           <span className="text-gray-100 font-semibold text-sm tracking-tight">
-            MagicWand
+            Pulse
           </span>
         )}
       </div>

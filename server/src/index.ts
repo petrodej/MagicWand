@@ -126,7 +126,7 @@ async function start() {
   startAlertMonitor();
   startScheduler();
   server.listen(config.PORT, () => {
-    logger.info(`MagicWand server running on port ${config.PORT}`);
+    logger.info(`Pulse server running on port ${config.PORT}`);
   });
 }
 start();

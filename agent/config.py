@@ -7,7 +7,7 @@ def get_config_dir() -> str:
         base = os.environ.get("APPDATA", os.path.expanduser("~"))
     else:
         base = os.path.expanduser("~")
-    return os.path.join(base, "MagicWand")
+    return os.path.join(base, "Pulse")
 
 def get_config_path() -> str:
     return os.path.join(get_config_dir(), "config.json")

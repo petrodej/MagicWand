@@ -137,7 +137,7 @@ const tools: Anthropic.Tool[] = [
 ];
 
 function buildSystemPrompt(computer: { name: string; hostname: string; os: string; cpuModel: string | null; ramTotalMb: number | null }): string {
-  return `You are MagicWand AI, an expert IT support assistant. You are connected to a remote computer and can execute commands, take screenshots, read logs, and manage services on it.
+  return `You are Pulse AI, an expert IT support assistant. You are connected to a remote computer and can execute commands, take screenshots, read logs, and manage services on it.
 
 Computer info:
 - Name: ${computer.name}

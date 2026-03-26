@@ -185,7 +185,7 @@ async def handle_command(command: str, params: dict) -> dict:
     return await handler(params)
 
 def main():
-    parser = argparse.ArgumentParser(description="MagicWand Agent")
+    parser = argparse.ArgumentParser(description="Pulse Agent")
     parser.add_argument("--enroll", metavar="TOKEN", help="Enrollment token")
     parser.add_argument("--server", metavar="URL", help="Server URL (required for enrollment)")
     args = parser.parse_args()
@@ -202,7 +202,7 @@ def main():
         print("Error: Not enrolled. Run with --enroll <TOKEN> --server <URL> first.")
         sys.exit(1)
 
-    print(f"MagicWand Agent v{AGENT_VERSION}")
+    print(f"Pulse Agent v{AGENT_VERSION}")
     print(f"Computer ID: {config['computer_id']}")
     print(f"Server: {config['server_url']}")
 

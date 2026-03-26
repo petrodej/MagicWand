@@ -11,9 +11,9 @@ router.get('/install.bat', (req, res) => {
   const serverUrl = `${req.protocol}://${req.get('host')}`;
 
   const bat = `@echo off
-title MagicWand Agent Installer
+title Pulse Agent Installer
 echo.
-echo  === MagicWand Agent Installer ===
+echo  === Pulse Agent Installer ===
 echo.
 powershell -ExecutionPolicy Bypass -Command "irm '${serverUrl}/api/download/install.ps1?token=${token}' | iex"
 if errorlevel 1 (
@@ -24,7 +24,7 @@ if errorlevel 1 (
 `;
 
   res.setHeader('Content-Type', 'application/octet-stream');
-  res.setHeader('Content-Disposition', `attachment; filename="MagicWand-Install.bat"`);
+  res.setHeader('Content-Disposition', `attachment; filename="Pulse-Install.bat"`);
   res.send(bat);
 });
 
@@ -34,15 +34,15 @@ router.get('/install.ps1', (req, res) => {
   const serverUrl = `${req.protocol}://${req.get('host')}`;
 
   const script = `
-# MagicWand Agent Installer
+# Pulse Agent Installer
 $ErrorActionPreference = "Stop"
-$installDir = "$env:LOCALAPPDATA\\MagicWand"
+$installDir = "$env:LOCALAPPDATA\\Pulse"
 $pythonDir = "$installDir\\python"
 $agentDir = "$installDir\\agent"
 $serverUrl = "${serverUrl}"
 $token = "${token}"
 
-Write-Host "=== MagicWand Agent Installer ===" -ForegroundColor Magenta
+Write-Host "=== Pulse Agent Installer ===" -ForegroundColor Magenta
 Write-Host ""
 
 # Create install directory
@@ -104,7 +104,7 @@ $batPath = "$installDir\\start-agent.bat"
 $batContent = "@echo off" + [Environment]::NewLine + "cd /d ""$agentDir""" + [Environment]::NewLine + """$pythonDir\\python.exe"" main.py"
 Set-Content -Path $batPath -Value $batContent
 
-Copy-Item $batPath "$startupDir\\MagicWand Agent.bat" -Force
+Copy-Item $batPath "$startupDir\\Pulse Agent.bat" -Force
 
 Write-Host ""
 Write-Host "=== Installation complete! ===" -ForegroundColor Green
