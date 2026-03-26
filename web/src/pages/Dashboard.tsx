@@ -3,7 +3,6 @@ import { Plus, Monitor, Play, X, Loader2, Filter, Wifi, Bell, ScrollText, Clock 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useComputerStore } from '../stores/computerStore';
-import { ComputerCard } from '../components/ComputerCard';
 import { AddComputerModal } from '../components/AddComputerModal';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { useNavigate } from 'react-router-dom';
@@ -16,6 +15,15 @@ interface CommandResult {
   stderr: string;
   exitCode: number;
   error?: string;
+}
+
+function formatUptime(seconds: number): string {
+  const d = Math.floor(seconds / 86400);
+  const h = Math.floor((seconds % 86400) / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  if (d > 0) return `${d}d ${h}h`;
+  if (h > 0) return `${h}h ${m}m`;
+  return `${m}m`;
 }
 
 export function Dashboard() {
@@ -289,17 +297,119 @@ export function Dashboard() {
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {computers.filter((c) => !filterTag || (c.tags || '').split(',').map(t => t.trim()).includes(filterTag)).map((c) => (
-            <ComputerCard
-              key={c.id}
-              computer={c}
-              onClick={() => selectMode ? toggleSelect(c.id) : navigate(`/computers/${c.id}`)}
-              selectable={selectMode}
-              selected={selected.has(c.id)}
-              onSelect={toggleSelect}
-            />
-          ))}
+        <div className="bg-gray-900 border border-gray-800/50 rounded-xl overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-800/50 text-gray-500 text-xs">
+                {selectMode && <th className="w-10 px-4 py-3" />}
+                <th className="text-left px-4 py-3 font-medium w-8" />
+                <th className="text-left px-4 py-3 font-medium">Name</th>
+                <th className="text-left px-4 py-3 font-medium">OS</th>
+                <th className="text-left px-4 py-3 font-medium">IP Address</th>
+                <th className="text-left px-4 py-3 font-medium">CPU</th>
+                <th className="text-left px-4 py-3 font-medium">RAM</th>
+                <th className="text-left px-4 py-3 font-medium">Uptime</th>
+                <th className="text-left px-4 py-3 font-medium">Version</th>
+                <th className="text-left px-4 py-3 font-medium">Tags</th>
+                <th className="text-left px-4 py-3 font-medium">Last Seen</th>
+              </tr>
+            </thead>
+            <tbody>
+              {computers
+                .filter((c) => !filterTag || (c.tags || '').split(',').map(t => t.trim()).includes(filterTag))
+                .map((c) => (
+                <tr
+                  key={c.id}
+                  onClick={() => selectMode ? toggleSelect(c.id) : navigate(`/computers/${c.id}`)}
+                  className={`border-b border-gray-800/30 cursor-pointer transition-colors hover:bg-gray-800/30 ${
+                    selected.has(c.id) ? 'bg-teal-500/5' : ''
+                  } ${!c.isOnline ? 'opacity-50' : ''}`}
+                >
+                  {selectMode && (
+                    <td className="px-4 py-3">
+                      <input
+                        type="checkbox"
+                        checked={selected.has(c.id)}
+                        onChange={() => toggleSelect(c.id)}
+                        onClick={(e) => e.stopPropagation()}
+                        className="accent-teal-500"
+                      />
+                    </td>
+                  )}
+                  <td className="px-4 py-3">
+                    <span className={`inline-block w-2 h-2 rounded-full ${
+                      c.isOnline ? 'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.4)]' : 'bg-gray-600'
+                    }`} />
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="text-gray-100 font-medium">{c.hostname || c.name}</span>
+                  </td>
+                  <td className="px-4 py-3 text-gray-500 font-mono text-xs truncate max-w-[200px]">
+                    {c.os}
+                  </td>
+                  <td className="px-4 py-3 text-gray-500 font-mono text-xs">
+                    {c.ipAddress || '—'}
+                  </td>
+                  <td className="px-4 py-3">
+                    {c.isOnline ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-16 h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full ${
+                              (c.cpuPercent ?? 0) > 80 ? 'bg-red-500' : (c.cpuPercent ?? 0) > 50 ? 'bg-amber-500' : 'bg-teal-500'
+                            }`}
+                            style={{ width: `${Math.min(c.cpuPercent ?? 0, 100)}%` }}
+                          />
+                        </div>
+                        <span className="text-xs text-gray-500 w-8">{c.cpuPercent ?? 0}%</span>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-700">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    {c.isOnline ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-16 h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full ${
+                              (c.ramPercent ?? 0) > 80 ? 'bg-red-500' : (c.ramPercent ?? 0) > 50 ? 'bg-amber-500' : 'bg-gray-400'
+                            }`}
+                            style={{ width: `${Math.min(c.ramPercent ?? 0, 100)}%` }}
+                          />
+                        </div>
+                        <span className="text-xs text-gray-500 w-8">{c.ramPercent ?? 0}%</span>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-700">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-xs text-gray-500">
+                    {c.isOnline && c.uptimeSeconds != null ? formatUptime(c.uptimeSeconds) : '—'}
+                  </td>
+                  <td className="px-4 py-3 text-xs text-gray-600 font-mono">
+                    {c.agentVersion || '—'}
+                  </td>
+                  <td className="px-4 py-3">
+                    {c.tags ? (
+                      <div className="flex flex-wrap gap-1">
+                        {c.tags.split(',').filter(Boolean).map((tag) => (
+                          <span key={tag} className="px-1.5 py-0.5 bg-teal-500/10 text-teal-400 text-[10px] rounded-full border border-teal-500/20">
+                            {tag.trim()}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-700">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-xs text-gray-600 whitespace-nowrap">
+                    {c.lastSeen ? new Date(c.lastSeen).toLocaleString() : '—'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 
