@@ -126,4 +126,83 @@ router.get('/:id/system-info', async (req, res) => {
   }
 });
 
+// File manager — proxy commands to agent
+router.post('/:id/files/list', async (req, res) => {
+  const computer = await prisma.computer.findFirst({
+    where: { id: req.params.id, userId: req.userId },
+  });
+  if (!computer) { res.status(404).json({ error: 'NOT_FOUND' }); return; }
+
+  try {
+    const result = await executeAgentCommand(computer.id, 'list_directory', { path: req.body.path || 'C:\\' });
+    res.json(result);
+  } catch (err) {
+    if (err instanceof AgentOfflineError) { res.status(400).json({ error: 'AGENT_OFFLINE', message: 'Computer is offline.' }); return; }
+    res.status(500).json({ error: 'INTERNAL_ERROR', message: 'Failed to list directory.' });
+  }
+});
+
+router.post('/:id/files/download', async (req, res) => {
+  const computer = await prisma.computer.findFirst({
+    where: { id: req.params.id, userId: req.userId },
+  });
+  if (!computer) { res.status(404).json({ error: 'NOT_FOUND' }); return; }
+
+  try {
+    const result = await executeAgentCommand(computer.id, 'download_file', { path: req.body.path });
+    res.json(result);
+  } catch (err) {
+    if (err instanceof AgentOfflineError) { res.status(400).json({ error: 'AGENT_OFFLINE', message: 'Computer is offline.' }); return; }
+    res.status(500).json({ error: 'INTERNAL_ERROR', message: 'Failed to download file.' });
+  }
+});
+
+router.post('/:id/files/upload', async (req, res) => {
+  const computer = await prisma.computer.findFirst({
+    where: { id: req.params.id, userId: req.userId },
+  });
+  if (!computer) { res.status(404).json({ error: 'NOT_FOUND' }); return; }
+
+  try {
+    const result = await executeAgentCommand(computer.id, 'upload_file', {
+      path: req.body.path,
+      data_base64: req.body.data_base64,
+    });
+    res.json(result);
+  } catch (err) {
+    if (err instanceof AgentOfflineError) { res.status(400).json({ error: 'AGENT_OFFLINE', message: 'Computer is offline.' }); return; }
+    res.status(500).json({ error: 'INTERNAL_ERROR', message: 'Failed to upload file.' });
+  }
+});
+
+router.post('/:id/files/delete', async (req, res) => {
+  const computer = await prisma.computer.findFirst({
+    where: { id: req.params.id, userId: req.userId },
+  });
+  if (!computer) { res.status(404).json({ error: 'NOT_FOUND' }); return; }
+
+  try {
+    const result = await executeAgentCommand(computer.id, 'delete_path', { path: req.body.path });
+    res.json(result);
+  } catch (err) {
+    if (err instanceof AgentOfflineError) { res.status(400).json({ error: 'AGENT_OFFLINE', message: 'Computer is offline.' }); return; }
+    res.status(500).json({ error: 'INTERNAL_ERROR', message: 'Failed to delete.' });
+  }
+});
+
+router.post('/:id/files/mkdir', async (req, res) => {
+  const computer = await prisma.computer.findFirst({
+    where: { id: req.params.id, userId: req.userId },
+  });
+  if (!computer) { res.status(404).json({ error: 'NOT_FOUND' }); return; }
+
+  try {
+    const result = await executeAgentCommand(computer.id, 'create_directory', { path: req.body.path });
+    res.json(result);
+  } catch (err) {
+    if (err instanceof AgentOfflineError) { res.status(400).json({ error: 'AGENT_OFFLINE', message: 'Computer is offline.' }); return; }
+    res.status(500).json({ error: 'INTERNAL_ERROR', message: 'Failed to create directory.' });
+  }
+});
+
 export default router;

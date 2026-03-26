@@ -75,10 +75,20 @@ async def handle_command(command: str, params: dict) -> dict:
         "network_diagnostics": network_diagnostics,
     }
 
-    # Import input_control separately so a failure doesn't break other commands
+    # Import optional commands separately so a failure doesn't break other commands
     try:
         from commands.input_control import input_control
         handlers["input_control"] = input_control
+    except Exception:
+        pass
+
+    try:
+        from commands.file_manager import list_directory, download_file, upload_file, delete_path, create_directory
+        handlers["list_directory"] = list_directory
+        handlers["download_file"] = download_file
+        handlers["upload_file"] = upload_file
+        handlers["delete_path"] = delete_path
+        handlers["create_directory"] = create_directory
     except Exception:
         pass
 
