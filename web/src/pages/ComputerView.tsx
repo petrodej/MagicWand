@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { api } from '../lib/api';
 import type { Computer } from '../stores/computerStore';
@@ -45,9 +45,29 @@ export function ComputerView() {
             computer.isOnline ? 'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.4)]' : 'bg-gray-600'
           }`} />
         </div>
-        <Button variant="ghost" size="sm" onClick={handleDelete} className="text-gray-600 hover:text-red-400">
-          <Trash2 className="w-4 h-4" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              const tags = prompt('Tags (comma-separated):', computer.tags || '');
+              if (tags !== null) {
+                api.put(`/api/computers/${computer.id}/tags`, { tags }).then(() => {
+                  setComputer({ ...computer, tags });
+                });
+              }
+            }}
+            className="flex items-center gap-1 text-gray-500 hover:text-teal-400 text-xs transition-colors"
+          >
+            <Tag className="w-3.5 h-3.5" />
+            {computer.tags ? computer.tags.split(',').filter(Boolean).map((t) => (
+              <span key={t} className="px-1.5 py-0.5 bg-teal-500/10 text-teal-400 text-[10px] rounded-full border border-teal-500/20">
+                {t.trim()}
+              </span>
+            )) : 'Add tags'}
+          </button>
+          <Button variant="ghost" size="sm" onClick={handleDelete} className="text-gray-600 hover:text-red-400">
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
 
       {/* Underline tabs */}

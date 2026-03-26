@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Monitor, Play, X, Loader2 } from 'lucide-react';
+import { Plus, Monitor, Play, X, Loader2, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useComputerStore } from '../stores/computerStore';
@@ -30,6 +30,7 @@ export function Dashboard() {
   const [command, setCommand] = useState('');
   const [running, setRunning] = useState(false);
   const [results, setResults] = useState<CommandResult[]>([]);
+  const [filterTag, setFilterTag] = useState<string | null>(null);
 
   useEffect(() => {
     fetchComputers();
@@ -196,6 +197,36 @@ export function Dashboard() {
         </div>
       )}
 
+      {/* Tag filter */}
+      {(() => {
+        const allTags = [...new Set(computers.flatMap((c) => (c.tags || '').split(',').map(t => t.trim()).filter(Boolean)))].sort();
+        if (allTags.length === 0) return null;
+        return (
+          <div className="flex items-center gap-2 mb-4 flex-wrap">
+            <Filter className="w-3.5 h-3.5 text-gray-600" />
+            <button
+              onClick={() => setFilterTag(null)}
+              className={`px-2 py-0.5 text-xs rounded-full border transition-colors ${
+                !filterTag ? 'bg-teal-500/10 text-teal-400 border-teal-500/20' : 'text-gray-500 border-gray-800 hover:border-gray-700'
+              }`}
+            >
+              All
+            </button>
+            {allTags.map((tag) => (
+              <button
+                key={tag}
+                onClick={() => setFilterTag(filterTag === tag ? null : tag)}
+                className={`px-2 py-0.5 text-xs rounded-full border transition-colors ${
+                  filterTag === tag ? 'bg-teal-500/10 text-teal-400 border-teal-500/20' : 'text-gray-500 border-gray-800 hover:border-gray-700'
+                }`}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+        );
+      })()}
+
       {loading ? (
         <div className="text-gray-500">Loading...</div>
       ) : computers.length === 0 ? (
@@ -211,7 +242,7 @@ export function Dashboard() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {computers.map((c) => (
+          {computers.filter((c) => !filterTag || (c.tags || '').split(',').map(t => t.trim()).includes(filterTag)).map((c) => (
             <ComputerCard
               key={c.id}
               computer={c}

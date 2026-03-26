@@ -42,9 +42,19 @@ export function ComputerCard({ computer, onClick, selectable, selected, onSelect
         }`} />
       </div>
 
-      <p className="text-xs text-gray-500 font-mono truncate mb-4">
+      <p className="text-xs text-gray-500 font-mono truncate mb-2">
         {computer.os}{computer.ipAddress ? ` · ${computer.ipAddress}` : ''}
       </p>
+
+      {computer.tags && (
+        <div className="flex flex-wrap gap-1 mb-3">
+          {computer.tags.split(',').filter(Boolean).map((tag) => (
+            <span key={tag} className="px-1.5 py-0.5 bg-teal-500/10 text-teal-400 text-[10px] rounded-full border border-teal-500/20">
+              {tag.trim()}
+            </span>
+          ))}
+        </div>
+      )}
 
       {computer.isOnline && (
         <div className="space-y-2">

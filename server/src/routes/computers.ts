@@ -16,7 +16,7 @@ router.get('/', async (req, res) => {
       id: true, name: true, hostname: true, os: true,
       cpuModel: true, ramTotalMb: true, isOnline: true,
       lastSeen: true, ipAddress: true, agentVersion: true,
-      createdAt: true, updatedAt: true,
+      tags: true, createdAt: true, updatedAt: true,
     },
     orderBy: { createdAt: 'desc' },
   });
@@ -57,7 +57,7 @@ router.get('/:id', async (req, res) => {
       id: true, name: true, hostname: true, os: true,
       cpuModel: true, ramTotalMb: true, isOnline: true,
       lastSeen: true, ipAddress: true, agentVersion: true,
-      createdAt: true, updatedAt: true,
+      tags: true, createdAt: true, updatedAt: true,
     },
   });
 
@@ -85,6 +85,26 @@ router.put('/:id', async (req, res) => {
 
   if (computer.count === 0) {
     res.status(404).json({ error: 'NOT_FOUND', message: 'Computer not found.' });
+    return;
+  }
+  res.json({ success: true });
+});
+
+// Update computer tags
+router.put('/:id/tags', async (req, res) => {
+  const tags = req.body.tags;
+  if (typeof tags !== 'string') {
+    res.status(400).json({ error: 'VALIDATION_ERROR', message: 'Tags must be a string.' });
+    return;
+  }
+
+  const result = await prisma.computer.updateMany({
+    where: { id: req.params.id, userId: req.userId },
+    data: { tags },
+  });
+
+  if (result.count === 0) {
+    res.status(404).json({ error: 'NOT_FOUND' });
     return;
   }
   res.json({ success: true });

@@ -12,6 +12,7 @@ export interface Computer {
   lastSeen: string | null;
   ipAddress: string | null;
   agentVersion: string | null;
+  tags?: string;
   // Live heartbeat data (from WebSocket, not DB)
   cpuPercent?: number;
   ramPercent?: number;
