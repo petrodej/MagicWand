@@ -1,8 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
-import { RefreshCw, Play, Square, RotateCw } from 'lucide-react';
+import { RefreshCw, Play, Square, RotateCw, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { api } from '../lib/api';
+import { exportCsv } from '../lib/exportCsv';
 
 interface Service {
   Name: string;
@@ -84,9 +85,23 @@ export function ServiceManager({ computerId, isOnline }: Props) {
             ))}
           </div>
         </div>
-        <Button onClick={fetchServices} variant="ghost" className="text-gray-500 hover:text-gray-300" disabled={loading}>
-          <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} /> Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => exportCsv(
+              `services-${new Date().toISOString().slice(0, 10)}.csv`,
+              ['Name', 'Display Name', 'Status', 'Start Type'],
+              filtered.map((s) => [s.Name, s.DisplayName, s.Status, s.StartType])
+            )}
+            variant="ghost"
+            className="text-gray-500 hover:text-gray-300"
+            disabled={filtered.length === 0}
+          >
+            <Download className="w-4 h-4 mr-2" /> Export
+          </Button>
+          <Button onClick={fetchServices} variant="ghost" className="text-gray-500 hover:text-gray-300" disabled={loading}>
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} /> Refresh
+          </Button>
+        </div>
       </div>
 
       <div className="bg-gray-900 border border-gray-800/50 rounded-xl overflow-hidden max-h-[calc(100vh-280px)] overflow-y-auto">

@@ -1,8 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
-import { RefreshCw, X, ArrowUpDown } from 'lucide-react';
+import { RefreshCw, X, ArrowUpDown, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { api } from '../lib/api';
+import { exportCsv } from '../lib/exportCsv';
 
 interface Process {
   pid: number;
@@ -74,9 +75,23 @@ export function ProcessManager({ computerId, isOnline }: Props) {
           />
           <span className="text-xs text-gray-500">{totalCount} total processes</span>
         </div>
-        <Button onClick={fetchProcesses} variant="ghost" className="text-gray-500 hover:text-gray-300" disabled={loading}>
-          <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} /> Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => exportCsv(
+              `processes-${new Date().toISOString().slice(0, 10)}.csv`,
+              ['PID', 'Name', 'CPU %', 'RAM %'],
+              filtered.map((p) => [String(p.pid), p.name, String(p.cpu_percent), String(p.memory_percent)])
+            )}
+            variant="ghost"
+            className="text-gray-500 hover:text-gray-300"
+            disabled={filtered.length === 0}
+          >
+            <Download className="w-4 h-4 mr-2" /> Export
+          </Button>
+          <Button onClick={fetchProcesses} variant="ghost" className="text-gray-500 hover:text-gray-300" disabled={loading}>
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} /> Refresh
+          </Button>
+        </div>
       </div>
 
       <div className="bg-gray-900 border border-gray-800/50 rounded-xl overflow-hidden">

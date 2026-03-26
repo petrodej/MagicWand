@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { ScrollText, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ScrollText, Trash2, ChevronLeft, ChevronRight, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { api } from '../lib/api';
+import { exportCsv } from '../lib/exportCsv';
 
 interface AuditEntry {
   id: string;
@@ -72,14 +73,36 @@ export function AuditLog() {
           <h1 className="text-xl font-semibold text-gray-100">Audit Log</h1>
           <p className="text-sm text-gray-500 mt-1">{total} event(s) recorded</p>
         </div>
-        <Button
-          onClick={clearAll}
-          variant="ghost"
-          className="text-gray-600 hover:text-red-400"
-          disabled={logs.length === 0}
-        >
-          <Trash2 className="w-4 h-4 mr-2" /> Clear All
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => {
+              exportCsv(
+                `audit-log-${new Date().toISOString().slice(0, 10)}.csv`,
+                ['Time', 'Action', 'Computer', 'Details', 'IP'],
+                logs.map((l) => [
+                  new Date(l.createdAt).toLocaleString(),
+                  ACTION_LABELS[l.action]?.label || l.action,
+                  l.computer?.hostname || l.computer?.name || '',
+                  formatDetails(l.details) || '',
+                  l.ipAddress || '',
+                ])
+              );
+            }}
+            variant="ghost"
+            className="text-gray-600 hover:text-gray-300"
+            disabled={logs.length === 0}
+          >
+            <Download className="w-4 h-4 mr-2" /> Export CSV
+          </Button>
+          <Button
+            onClick={clearAll}
+            variant="ghost"
+            className="text-gray-600 hover:text-red-400"
+            disabled={logs.length === 0}
+          >
+            <Trash2 className="w-4 h-4 mr-2" /> Clear All
+          </Button>
+        </div>
       </div>
 
       {/* Filter */}

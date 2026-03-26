@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Monitor, Play, X, Loader2, Filter, Wifi, Bell, ScrollText, Clock, Power } from 'lucide-react';
+import { Plus, Monitor, Play, X, Loader2, Filter, Wifi, Bell, ScrollText, Clock, Power, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useComputerStore } from '../stores/computerStore';
@@ -8,6 +8,7 @@ import { useWebSocket } from '../hooks/useWebSocket';
 import { useNavigate } from 'react-router-dom';
 import { api, getWsBase } from '../lib/api';
 import { useToastStore } from '../components/ToastContainer';
+import { exportCsv } from '../lib/exportCsv';
 
 interface CommandResult {
   computerId: string;
@@ -151,6 +152,29 @@ export function Dashboard() {
                 disabled={computers.filter((c) => c.isOnline).length === 0}
               >
                 Multi-Action
+              </Button>
+              <Button
+                onClick={() => exportCsv(
+                  `computers-${new Date().toISOString().slice(0, 10)}.csv`,
+                  ['Name', 'OS', 'IP Address', 'Status', 'CPU %', 'RAM %', 'Uptime', 'Version', 'Tags', 'Last Seen'],
+                  computers.map((c) => [
+                    c.hostname || c.name,
+                    c.os || '',
+                    c.ipAddress || '',
+                    c.isOnline ? 'Online' : 'Offline',
+                    String(c.cpuPercent ?? ''),
+                    String(c.ramPercent ?? ''),
+                    c.uptimeSeconds != null ? formatUptime(c.uptimeSeconds) : '',
+                    c.agentVersion || '',
+                    c.tags || '',
+                    c.lastSeen ? new Date(c.lastSeen).toLocaleString() : '',
+                  ])
+                )}
+                variant="ghost"
+                className="text-gray-500 hover:text-gray-300"
+                disabled={computers.length === 0}
+              >
+                <Download className="w-4 h-4 mr-2" /> Export
               </Button>
               <Button
                 onClick={() => setShowAddModal(true)}
