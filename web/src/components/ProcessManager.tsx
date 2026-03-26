@@ -28,11 +28,11 @@ export function ProcessManager({ computerId, isOnline }: Props) {
   const fetchProcesses = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await api.get<{ processes: Process[]; total_count: number }>(
+      const data = await api.get<{ processes?: Process[]; total_count?: number }>(
         `/api/computers/${computerId}/processes?sort=${sortBy}&limit=100`
       );
-      setProcesses(data.processes);
-      setTotalCount(data.total_count);
+      setProcesses(data.processes || []);
+      setTotalCount(data.total_count || 0);
     } catch {}
     setLoading(false);
   }, [computerId, sortBy]);

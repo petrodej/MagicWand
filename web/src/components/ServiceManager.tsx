@@ -29,10 +29,10 @@ export function ServiceManager({ computerId, isOnline }: Props) {
     try {
       const params = new URLSearchParams();
       if (filterStatus) params.set('status', filterStatus);
-      const data = await api.get<{ services: Service[]; total_count: number }>(
+      const data = await api.get<{ services?: Service[]; total_count?: number }>(
         `/api/computers/${computerId}/services?${params}`
       );
-      setServices(data.services);
+      setServices(data.services || []);
     } catch {}
     setLoading(false);
   }, [computerId, filterStatus]);
