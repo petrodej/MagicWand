@@ -1,7 +1,14 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Maximize2, Minimize2, Loader2 } from 'lucide-react';
+import { Maximize2, Minimize2, Loader2, Settings2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { api, getWsBase } from '../lib/api';
+
+const QUALITY_PRESETS = [
+  { label: 'Low', quality: 25, maxWidth: 960, fps: 3, desc: 'Saves bandwidth' },
+  { label: 'Medium', quality: 50, maxWidth: 1280, fps: 4, desc: 'Balanced' },
+  { label: 'High', quality: 75, maxWidth: 1600, fps: 6, desc: 'Sharper image' },
+  { label: 'Ultra', quality: 90, maxWidth: 1920, fps: 8, desc: 'Best quality' },
+];
 
 interface Props {
   computerId: string;
@@ -15,6 +22,8 @@ export function RemoteDesktop({ computerId, isOnline }: Props) {
   const [frameSize, setFrameSize] = useState({ width: 1280, height: 720 });
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [showQuality, setShowQuality] = useState(false);
+  const [qualityPreset, setQualityPreset] = useState(1); // default Medium
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Track fullscreen changes (e.g. user presses Escape)
@@ -107,6 +116,22 @@ export function RemoteDesktop({ computerId, isOnline }: Props) {
     const ws = wsRef.current;
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({ type: 'input', ...event }));
+    }
+  }, []);
+
+  // Send quality settings
+  const applyQuality = useCallback((presetIndex: number) => {
+    setQualityPreset(presetIndex);
+    setShowQuality(false);
+    const preset = QUALITY_PRESETS[presetIndex];
+    const ws = wsRef.current;
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({
+        type: 'settings',
+        quality: preset.quality,
+        maxWidth: preset.maxWidth,
+        fps: preset.fps,
+      }));
     }
   }, []);
 
@@ -223,6 +248,39 @@ export function RemoteDesktop({ computerId, isOnline }: Props) {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {/* Quality selector */}
+          <div className="relative">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowQuality(!showQuality)}
+              className="text-gray-400 hover:text-teal-400 text-xs gap-1"
+            >
+              <Settings2 className="w-3.5 h-3.5" />
+              {QUALITY_PRESETS[qualityPreset].label}
+            </Button>
+            {showQuality && (
+              <div className="absolute right-0 top-full mt-1 bg-gray-900 border border-gray-800/50 rounded-lg shadow-xl z-50 py-1 w-44">
+                {QUALITY_PRESETS.map((preset, i) => (
+                  <button
+                    key={preset.label}
+                    onClick={() => applyQuality(i)}
+                    className={`w-full text-left px-3 py-2 text-sm transition-colors flex items-center justify-between ${
+                      qualityPreset === i
+                        ? 'bg-teal-500/10 text-teal-400'
+                        : 'text-gray-400 hover:bg-gray-800/50 hover:text-gray-200'
+                    }`}
+                  >
+                    <div>
+                      <div className="font-medium text-xs">{preset.label}</div>
+                      <div className="text-[10px] text-gray-600">{preset.desc}</div>
+                    </div>
+                    <span className="text-[10px] text-gray-600">{preset.fps} FPS</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           <Button
             variant="ghost"
             size="sm"

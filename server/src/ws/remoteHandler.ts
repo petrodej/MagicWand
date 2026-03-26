@@ -7,6 +7,9 @@ export function setupRemoteHandler(ws: WebSocket, computerId: string) {
   let waitingForFrame = false;
   let lastFrameWidth = 1280;
   let lastFrameHeight = 720;
+  let quality = 50;
+  let maxWidth = 1280;
+  let frameDelay = 250;
 
   // Check agent is online
   if (!isAgentOnline(computerId)) {
@@ -15,48 +18,48 @@ export function setupRemoteHandler(ws: WebSocket, computerId: string) {
     return;
   }
 
-  // Start frame loop (~4 FPS)
-  frameInterval = setInterval(async () => {
-    if (waitingForFrame) return; // Skip if previous frame hasn't returned
-    if (ws.readyState !== WebSocket.OPEN) return;
+  const restartFrameLoop = () => {
+    if (frameInterval) clearInterval(frameInterval);
+    frameInterval = setInterval(async () => {
+      if (waitingForFrame) return;
+      if (ws.readyState !== WebSocket.OPEN) return;
 
-    waitingForFrame = true;
-    try {
-      const result = await sendAgentCommand(computerId, 'screenshot', {
-        quality: 50,
-        max_width: 1280,
-      }, 5000); // 5s timeout for frames
+      waitingForFrame = true;
+      try {
+        const result = await sendAgentCommand(computerId, 'screenshot', {
+          quality,
+          max_width: maxWidth,
+        }, 5000);
 
-      if (ws.readyState === WebSocket.OPEN) {
-        lastFrameWidth = result.width;
-        lastFrameHeight = result.height;
-        ws.send(JSON.stringify({
-          type: 'frame',
-          data: result.image_base64,
-          width: result.width,
-          height: result.height,
-        }));
-      }
-    } catch (err: any) {
-      if (ws.readyState === WebSocket.OPEN) {
-        // If agent went offline, notify and close
-        if (!isAgentOnline(computerId)) {
+        if (ws.readyState === WebSocket.OPEN) {
+          lastFrameWidth = result.width;
+          lastFrameHeight = result.height;
+          ws.send(JSON.stringify({
+            type: 'frame',
+            data: result.image_base64,
+            width: result.width,
+            height: result.height,
+          }));
+        }
+      } catch {
+        if (ws.readyState === WebSocket.OPEN && !isAgentOnline(computerId)) {
           ws.send(JSON.stringify({ type: 'error', message: 'Agent offline' }));
           ws.close();
         }
-        // Otherwise just skip this frame
+      } finally {
+        waitingForFrame = false;
       }
-    } finally {
-      waitingForFrame = false;
-    }
-  }, 250);
+    }, frameDelay);
+  };
 
-  // Handle input events from browser
+  // Start frame loop
+  restartFrameLoop();
+
+  // Handle messages from browser
   ws.on('message', (raw) => {
     try {
       const data = JSON.parse(raw.toString());
       if (data.type === 'input') {
-        // Forward input to agent with canvas dimensions for coordinate scaling
         sendAgentCommand(computerId, 'input_control', {
           action: data.action,
           x: data.x,
@@ -68,9 +71,15 @@ export function setupRemoteHandler(ws: WebSocket, computerId: string) {
           text: data.text,
           canvas_width: lastFrameWidth,
           canvas_height: lastFrameHeight,
-        }, 5000).catch(() => {
-          // Input delivery failures are non-fatal
-        });
+        }, 5000).catch(() => {});
+      } else if (data.type === 'settings') {
+        if (data.quality != null) quality = Math.max(10, Math.min(100, data.quality));
+        if (data.maxWidth != null) maxWidth = Math.max(640, Math.min(1920, data.maxWidth));
+        if (data.fps != null) {
+          const fps = Math.max(1, Math.min(15, data.fps));
+          frameDelay = Math.round(1000 / fps);
+          restartFrameLoop();
+        }
       }
     } catch {}
   });
