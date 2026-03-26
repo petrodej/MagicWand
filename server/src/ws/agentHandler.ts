@@ -1,6 +1,7 @@
 import { WebSocket, WebSocketServer } from 'ws';
 import { prisma } from '../db.js';
 import { logger } from '../index.js';
+import { checkHeartbeatAlerts } from '../services/alertMonitor.js';
 
 // Maps computerId → WebSocket
 const agentConnections = new Map<string, WebSocket>();
@@ -81,6 +82,7 @@ export function setupAgentWebSocket(wss: WebSocketServer) {
             data: { lastSeen: new Date() },
           });
           broadcastHeartbeat(computerId, data);
+          checkHeartbeatAlerts(computerId, data.cpu_percent, data.ram_percent);
         } catch {
           // Computer was deleted — disconnect agent
           ws.close();

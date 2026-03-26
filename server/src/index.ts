@@ -17,6 +17,8 @@ import downloadRoutes from './routes/download.js';
 import { setupAgentWebSocket, addDashboardClient } from './ws/agentHandler.js';
 import { addChatClient } from './ws/chatHandler.js';
 import { setupRemoteHandler } from './ws/remoteHandler.js';
+import alertRoutes from './routes/alerts.js';
+import { startAlertMonitor } from './services/alertMonitor.js';
 
 export const logger = pino({ transport: { target: 'pino-pretty' } });
 
@@ -34,6 +36,7 @@ app.use('/api/computers', computerRoutes);
 app.use('/api/computers', chatRoutes);
 app.use('/api/agent', agentRoutes);
 app.use('/api/download', downloadRoutes);
+app.use('/api/alerts', alertRoutes);
 
 // Serve frontend static files
 const webDist = path.resolve(process.cwd(), '../web/dist');
@@ -109,6 +112,7 @@ server.on('upgrade', async (request, socket, head) => {
 
 async function start() {
   await seedAdminUser();
+  startAlertMonitor();
   server.listen(config.PORT, () => {
     logger.info(`MagicWand server running on port ${config.PORT}`);
   });

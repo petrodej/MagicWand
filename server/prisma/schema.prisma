@@ -14,6 +14,8 @@ model User {
   createdAt     DateTime   @default(now())
   computers     Computer[]
   sessions      Session[]
+  alertRules    AlertRule[]
+  alertLogs     AlertLog[]
 }
 
 model Computer {
@@ -35,6 +37,8 @@ model Computer {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   chatMessages  ChatMessage[]
+  alertRules    AlertRule[]
+  alertLogs     AlertLog[]
 }
 
 model ChatMessage {
@@ -44,6 +48,31 @@ model ChatMessage {
   role          String
   content       String
   metadata      String?
+  createdAt     DateTime @default(now())
+}
+
+model AlertRule {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  computerId    String?
+  computer      Computer? @relation(fields: [computerId], references: [id], onDelete: Cascade)
+  type          String   // "offline", "cpu", "ram", "disk"
+  threshold     Float?   // percentage threshold for cpu/ram/disk
+  webhookUrl    String?
+  enabled       Boolean  @default(true)
+  createdAt     DateTime @default(now())
+}
+
+model AlertLog {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  computerId    String
+  computer      Computer @relation(fields: [computerId], references: [id], onDelete: Cascade)
+  type          String
+  message       String
+  resolved      Boolean  @default(false)
   createdAt     DateTime @default(now())
 }
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Monitor, PanelLeftClose, PanelLeft, LogOut } from 'lucide-react';
+import { Monitor, Bell, PanelLeftClose, PanelLeft, LogOut } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
 
 export function Sidebar() {
@@ -12,6 +12,7 @@ export function Sidebar() {
   const isDashboardActive =
     location.pathname.startsWith('/dashboard') ||
     location.pathname.startsWith('/computers');
+  const isAlertsActive = location.pathname.startsWith('/alerts');
 
   const handleLogout = async () => {
     await logout();
@@ -51,6 +52,21 @@ export function Sidebar() {
           )}
           <Monitor size={16} className="shrink-0" />
           {!collapsed && <span>Dashboard</span>}
+        </button>
+
+        <button
+          onClick={() => navigate('/alerts')}
+          className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors relative ${
+            isAlertsActive
+              ? 'bg-gray-800/50 text-gray-100'
+              : 'text-gray-500 hover:text-gray-300'
+          }`}
+        >
+          {isAlertsActive && (
+            <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 bg-teal-500 rounded-full" />
+          )}
+          <Bell size={16} className="shrink-0" />
+          {!collapsed && <span>Alerts</span>}
         </button>
       </nav>
 
