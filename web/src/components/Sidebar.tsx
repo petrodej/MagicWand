@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Monitor, Bell, ScrollText, Clock, Code2, Users, Sun, Moon, PanelLeftClose, PanelLeft, LogOut } from 'lucide-react';
+import { Monitor, Bell, ScrollText, Clock, Code2, Users, Sun, Moon, Search, PanelLeftClose, PanelLeft, LogOut } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
 import { useThemeStore } from '../stores/themeStore';
 
@@ -41,6 +41,22 @@ export function Sidebar() {
             MagicWand
           </span>
         )}
+      </div>
+
+      {/* Search trigger */}
+      <div className="px-2 mb-2">
+        <button
+          onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }))}
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm text-gray-500 hover:text-gray-300 bg-gray-800/30 hover:bg-gray-800/50 transition-colors"
+        >
+          <Search size={14} className="shrink-0" />
+          {!collapsed && (
+            <>
+              <span className="flex-1 text-left">Search...</span>
+              <kbd className="text-[10px] text-gray-600 bg-gray-800 px-1.5 py-0.5 rounded">Ctrl+K</kbd>
+            </>
+          )}
+        </button>
       </div>
 
       {/* Nav */}
